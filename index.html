@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VKU Field Survey - Hệ Thống Thu Thập Dữ Liệu Thực Địa</title>
+  <link rel="stylesheet" href="./style.css" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <meta name="theme-color" content="#0284c7" />
+</head>
+<body>
+  <!-- HEADER DOANH NGHIỆP CHUẨN HOÁ -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <span class="logo-icon">📊</span>
+        <div>
+          <h1>VKU Field Survey</h1>
+          <p class="subtitle">Hệ thống thu thập dữ liệu & kiểm định thực địa ngoại tuyến</p>
+        </div>
+      </div>
+      <div class="status-bar">
+        <button id="btn-install-app" class="btn-install" title="Cài đặt ứng dụng về màn hình chính điện thoại">
+          📲 Cài Đặt App
+        </button>
+        <span id="net-indicator" class="badge online">🟢 Online</span>
+        <span id="pending-badge" class="badge pending-count">⏳ 0 PENDING_SYNC</span>
+        <button id="btn-open-info" class="btn-info-icon" title="Thông số kỹ thuật hệ thống" onclick="openSystemInfoModal()">ℹ️</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- BANNER CẢNH BÁO NGOẠI TUYẾN -->
+  <div id="offline-banner" class="alert-banner hidden">
+    ⚠️ <strong>Đang ngoại tuyến (Offline):</strong> Ứng dụng hoạt động 100% offline. Dữ liệu khảo sát, ảnh chụp và tọa độ GPS sẽ được lưu vào <strong>IndexedDB</strong> với nhãn <code>PENDING_SYNC</code> và tự động đồng bộ tuần tự khi có mạng trở lại.
+  </div>
+
+  <!-- TOAST THÔNG BÁO -->
+  <div id="toast-message" class="toast hidden"></div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="main-content">
+    <!-- NAVIGATION TABS SẢN PHẨM THỰC TẾ -->
+    <div class="nav-tabs">
+      <button id="tab-btn-form" class="tab-btn active" onclick="switchTab('form')">
+        ✍️ Khảo Sát Mới
+      </button>
+      <button id="tab-btn-queue" class="tab-btn" onclick="switchTab('queue')">
+        📋 Hàng Đợi & Lịch Sử (<span id="total-count">0</span>)
+      </button>
+      <button id="tab-btn-analytics" class="tab-btn" onclick="switchTab('analytics')">
+        📊 Thống Kê & Báo Cáo
+      </button>
+    </div>
+
+    <!-- TAB 1: BIỂU MẪU KHẢO SÁT HIỆN TRƯỜNG -->
+    <section id="section-form" class="content-section">
+      <form id="survey-form" class="form-card">
+        <div class="card-header">
+          <div class="header-title-row">
+            <h2>📝 Phiếu Thu Thập Dữ Liệu Hiện Trường</h2>
+            <span id="draft-indicator" class="draft-badge hidden">💾 Đã lưu nháp tự động</span>
+          </div>
+          <p>Thu thập dữ liệu kiểm định cơ sở vật chất và khảo sát thị trường thực tế</p>
+        </div>
+
+        <!-- BƯỚC 1: THÔNG TIN NGƯỜI KHẢO SÁT & THỜI GIAN -->
+        <div class="form-step-box">
+          <h3 class="step-title">👤 Bước 1: Thông Tin Người Khảo Sát & Thời Gian</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inspector">Họ & Tên Người khảo sát / Kiểm tra *</label>
+              <input type="text" id="inspector" placeholder="Ví dụ: Nguyễn Văn Nam" required />
+            </div>
+            <div class="form-group">
+              <label for="inspector-code">Mã Điều tra viên / Mã SV *</label>
+              <input type="text" id="inspector-code" placeholder="Ví dụ: DTV-092 / 21IT001" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="survey-time">Thời gian khảo sát *</label>
+            <input type="datetime-local" id="survey-time" required />
+          </div>
+        </div>
+
+        <!-- BƯỚC 2: ĐỊA ĐIỂM & ĐỊNH VỊ VỆ TINH GPS -->
+        <div class="form-step-box">
+          <h3 class="step-title">📍 Bước 2: Địa Điểm & Tọa Độ Vệ Tinh (GPS)</h3>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="building">Khu vực / Tòa nhà *</label>
+              <select id="building" required>
+                <option value="">-- Chọn khu vực --</option>
+                <option value="Khu A (Giảng đường chính)">Khu A (Giảng đường chính)</option>
+                <option value="Khu B (Khu thực hành & Lab)">Khu B (Khu thực hành & Lab máy tính)</option>
+                <option value="Khu C (Hành chính & Khảo thí)">Khu C (Hành chính & Khảo thí)</option>
+                <option value="Khu V (Nhà đa năng & Thể thao)">Khu V (Nhà đa năng & Thể thao)</option>
+                <option value="Thư viện số VKU">Thư viện số VKU</option>
+                <option value="Ký túc xá VKU">Ký túc xá VKU</option>
+                <option value="Khu Dịch Vụ / Căng-tin / Điểm bán">Khu Dịch Vụ / Căng-tin / Điểm bán</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="floor">Tầng (Floor) *</label>
+              <select id="floor" required>
+                <option value="">-- Chọn tầng --</option>
+                <option value="Tầng Hầm (Basement)">Tầng Hầm (Basement)</option>
+                <option value="Tầng 1">Tầng 1</option>
+                <option value="Tầng 2">Tầng 2</option>
+                <option value="Tầng 3">Tầng 3</option>
+                <option value="Tầng 4">Tầng 4</option>
+                <option value="Tầng 5">Tầng 5</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="room">Số phòng / Tên điểm khảo sát *</label>
+              <input type="text" id="room" placeholder="Ví dụ: Phòng A102, Lab B203, Quầy số 1..." required />
+            </div>
+            <div class="form-group">
+              <label for="target-person">Người trả lời / Chủ hộ / Phụ trách</label>
+              <input type="text" id="target-person" placeholder="Ví dụ: Thầy quản lý / Cô chủ quầy" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="address">Địa chỉ hiện trường cụ thể *</label>
+            <input type="text" id="address" placeholder="Ví dụ: Dãy nhà A, Nam Kỳ Khởi Nghĩa, Đà Nẵng..." required />
+          </div>
+
+          <!-- BẮT TỌA ĐỘ GPS -->
+          <div class="location-box">
+            <button type="button" id="btn-get-gps" class="btn-location">
+              🎯 Lấy Tọa Độ GPS Thực Địa (High-Accuracy Geolocation)
+            </button>
+            <span id="gps-status" class="gps-status-text">Chưa bắt tọa độ</span>
+          </div>
+          <div id="gps-result" class="gps-result hidden">
+            <span id="gps-coords">--</span>
+            <a id="gps-map-link" href="#" target="_blank" class="map-link">🗺️ Mở trên Google Maps</a>
+          </div>
+        </div>
+
+        <!-- BƯỚC 3: HẠNG MỤC & ĐÁNH GIÁ 1-5 SAO -->
+        <div class="form-step-box">
+          <h3 class="step-title">⚙️ Bước 3: Hạng Mục Khảo Sát & Đánh Giá Tình Trạng</h3>
+
+          <div class="form-group">
+            <label for="category">Hạng mục khảo sát (Category) *</label>
+            <select id="category" required>
+              <option value="Hardware">Hardware (Máy tính, Phần cứng CNTT phòng Lab)</option>
+              <option value="Projector">Projector (Máy chiếu, Màn chiếu, Thiết bị Âm thanh)</option>
+              <option value="AC">AC (Máy điều hòa nhiệt độ, Hệ thống thông gió)</option>
+              <option value="Electrical">Electrical (Hệ thống điện, Đèn chiếu sáng, Ổ cắm)</option>
+              <option value="Furniture">Furniture (Bàn ghế sinh viên, Bục giảng, Cửa)</option>
+              <option value="Market/Service">Market / Service (Hàng hóa tiêu dùng, Dịch vụ điểm bán)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Đánh giá chất lượng hiện trạng (1–5 Star Rating) *</label>
+            <div class="star-rating-group">
+              <input type="radio" id="star5" name="condition_rating" value="5" checked />
+              <label for="star5" title="5 sao">⭐⭐⭐⭐⭐ (5 Sao - Rất tốt / Hoạt động hoàn hảo)</label>
+
+              <input type="radio" id="star4" name="condition_rating" value="4" />
+              <label for="star4" title="4 sao">⭐⭐⭐⭐ (4 Sao - Tốt / Đáp ứng tốt yêu cầu)</label>
+
+              <input type="radio" id="star3" name="condition_rating" value="3" />
+              <label for="star3" title="3 sao">⭐⭐⭐ (3 Sao - Trung bình / Cần bảo dưỡng)</label>
+
+              <input type="radio" id="star2" name="condition_rating" value="2" />
+              <label for="star2" title="2 sao">⭐⭐ (2 Sao - Kém / Hỏng một phần chức năng)</label>
+
+              <input type="radio" id="star1" name="condition_rating" value="1" />
+              <label for="star1" title="1 sao">⭐ (1 Sao - Rất xấu / Hư hỏng nghiêm trọng)</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- BƯỚC 4: GHI CHÚ SỰ CỐ & CHỤP ẢNH HIỆN TRƯỜNG -->
+        <div class="form-step-box">
+          <h3 class="step-title">📸 Bước 4: Minh Chứng Hình Ảnh & Ghi Chú Hiện Trường</h3>
+
+          <div class="form-group">
+            <label for="defect-notes">Ghi chú sự cố / Ý kiến khảo sát:</label>
+            <textarea id="defect-notes" rows="3" placeholder="Mô tả cụ thể sự cố (Ví dụ: Máy chiếu chớp tắt, quạt kêu to, thiếu bóng đèn, nhu cầu bổ sung thiết bị...)"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Chụp ảnh hiện trường thiết bị / Điểm khảo sát:</label>
+            <div class="camera-actions">
+              <label for="photo-file" class="btn-camera">
+                📷 Mở Camera Chụp Ảnh Hiện Trường
+              </label>
+              <input type="file" id="photo-file" accept="image/*" capture="environment" class="hidden-file-input" />
+              <span id="photo-size-badge" class="photo-badge">Chưa có ảnh</span>
+            </div>
+            <div id="photo-preview-wrap" class="photo-preview-box hidden">
+              <img id="photo-img" src="" alt="Ảnh chụp hiện trường" />
+              <button type="button" id="btn-remove-photo" class="btn-remove-img">❌ Hủy ảnh này</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" id="btn-submit" class="btn-primary">
+          💾 Gửi Phiếu Khảo Sát (Lưu Offline-First)
+        </button>
+      </form>
+    </section>
+
+    <!-- TAB 2: HÀNG ĐỢI NGOẠI TUYẾN & ĐỒNG BỘ -->
+    <section id="section-queue" class="content-section hidden">
+      <div class="list-header-card">
+        <div>
+          <h2>📋 Hàng Đợi & Lịch Sử Khảo Sát</h2>
+          <p>Dữ liệu lưu trữ độc lập trên thiết bị, tự động đồng bộ khi có kết nối mạng</p>
+        </div>
+        <div class="header-action-btns">
+          <button type="button" id="btn-sync-queue" class="btn-sync" title="Đồng bộ tất cả phiếu PENDING_SYNC">
+            🔄 Đồng Bộ Hàng Đợi
+          </button>
+          <button type="button" id="btn-export-csv" class="btn-export" title="Xuất file báo cáo Excel">
+            📥 Xuất CSV
+          </button>
+        </div>
+      </div>
+
+      <div id="survey-queue-list" class="survey-list">
+        <p class="empty-state">Chưa có phiếu khảo sát nào. Hãy điền form bên trái để bắt đầu!</p>
+      </div>
+    </section>
+
+    <!-- TAB 3: TRUNG TÂM THỐNG KÊ & BÁO CÁO (DASHBOARD & ANALYTICS) -->
+    <section id="section-analytics" class="content-section hidden">
+      <div class="analytics-header-card">
+        <div class="analytics-title-wrap">
+          <h2>📊 Trung Tâm Thống Kê & Báo Cáo Dữ Liệu</h2>
+          <p>Tổng hợp thời gian thực các chỉ số khảo sát thực địa từ cơ sở dữ liệu trên thiết bị</p>
+        </div>
+        <div class="analytics-actions">
+          <button type="button" class="btn-sync" onclick="dispatchSyncQueue(true)">🔄 Đồng Bộ Tất Cả</button>
+          <button type="button" class="btn-export" onclick="exportToCSV()">📥 Xuất Báo Cáo CSV</button>
+          <button type="button" class="btn-sysinfo" onclick="openSystemInfoModal()">ℹ️ Thông Số Kỹ Thuật</button>
+        </div>
+      </div>
+
+      <!-- 4 THẺ KPI CHÍNH -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon">📝</div>
+          <div class="kpi-info">
+            <span class="kpi-label">Tổng số phiếu khảo sát</span>
+            <h3 id="kpi-total" class="kpi-value">0</h3>
+            <span class="kpi-sub">Bản ghi trong cơ sở dữ liệu</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-synced">
+          <div class="kpi-icon">☁️</div>
+          <div class="kpi-info">
+            <span class="kpi-label">Đã đồng bộ lên hệ thống</span>
+            <h3 id="kpi-synced" class="kpi-value">0</h3>
+            <span class="kpi-sub text-success">Đã xác thực trên máy chủ</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-pending">
+          <div class="kpi-icon">⏳</div>
+          <div class="kpi-info">
+            <span class="kpi-label">Chờ đồng bộ (Ngoại tuyến)</span>
+            <h3 id="kpi-pending" class="kpi-value">0</h3>
+            <span class="kpi-sub text-warning">Sẽ tự động gửi khi có mạng</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-rating">
+          <div class="kpi-icon">⭐</div>
+          <div class="kpi-info">
+            <span class="kpi-label">Đánh giá chất lượng TB</span>
+            <h3 id="kpi-rating" class="kpi-value">0.0 / 5</h3>
+            <span class="kpi-sub" id="kpi-rating-stars">⭐⭐⭐⭐⭐</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BẢNG PHÂN BỔ HẠNG MỤC (CATEGORY BREAKDOWN) -->
+      <div class="card analytics-breakdown-card">
+        <div class="card-header">
+          <h3>📈 Phân Bổ Khảo Sát Theo Hạng Mục</h3>
+          <p>Tỷ lệ thiết bị & cơ sở vật chất đã được điều tra thực địa</p>
+        </div>
+        <div id="category-bars-wrap" class="category-bars-wrap">
+          <!-- Dynamic render qua app.js -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL THÔNG TIN HỆ THỐNG & CẤU HÌNH KỸ THUẬT (DÀNH CHO GIẢNG VIÊN / KIỂM THỬ) -->
+  <div id="modal-sysinfo" class="modal-backdrop hidden" onclick="closeSystemInfoModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-icon">🏛️</span>
+          <div>
+            <h3>Thông Số Kỹ Thuật Hệ Thống (System Specs)</h3>
+            <p>VKU Field Survey Engine • Phiên bản 1.0.0 (Production Build)</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeSystemInfoModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="spec-grid">
+          <div class="spec-item">
+            <span class="spec-tag">Kiến trúc</span>
+            <h4>Three-Layer Architecture</h4>
+            <p>Presentation (MD3 UI) - Business Logic (UUID v4, Canvas Compress, Auto-Sync) - Data (IndexedDB v2, Cache-First SW).</p>
+          </div>
+          <div class="spec-item">
+            <span class="spec-tag">Ngoại tuyến</span>
+            <h4>Offline-First 100%</h4>
+            <p>App Shell Cache-First nạp dưới 1 giây; Real-time Draft Persistence (IndexedDB debounced 450ms) chống mất dữ liệu khi F5.</p>
+          </div>
+          <div class="spec-item">
+            <span class="spec-tag">Đồng bộ</span>
+            <h4>Background Auto-Sync</h4>
+            <p>Tự động điều phối tuần tự khi bắt sự kiện <code>window.ononline</code>, chuyển nhãn <code>PENDING_SYNC</code> sang <code>SYNCED</code>.</p>
+          </div>
+          <div class="spec-item">
+            <span class="spec-tag">Đa nền tảng</span>
+            <h4>Capacitor Native Bridge</h4>
+            <p>Cấu hình sẵn <code>capacitor.config.json</code>, tích hợp Camera/Network Native Plugin để đóng gói file APK Android.</p>
+          </div>
+        </div>
+        <div class="spec-footer-info">
+          <span>Học phần Lập trình Đa Nền Tảng • Khoa Khoa học Máy tính — VKU 2026</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <p>© 2026 VKU Field Survey Engine • Phiên bản 1.0.0 (Production Build) • Hỗ trợ Offline-First 100%</p>
+  </footer>
+
+  <!-- MODULE SCRIPTS -->
+  <script src="./db.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

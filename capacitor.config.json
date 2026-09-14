@@ -1,0 +1,14 @@
+{
+  "appId": "vn.udn.vku.fieldsurvey",
+  "appName": "VKU Field Survey",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "Camera": {
+      "presentationStyle": "fullscreen"
+    }
+  }
+}
