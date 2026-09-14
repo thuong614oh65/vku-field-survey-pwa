@@ -243,10 +243,10 @@
       <div class="analytics-header-card">
         <div class="analytics-title-wrap">
           <h2>📊 Trung Tâm Thống Kê & Báo Cáo Dữ Liệu</h2>
-          <p>Tổng hợp thời gian thực các chỉ số khảo sát thực địa từ cơ sở dữ liệu trên thiết bị</p>
+          <p>Tổng hợp thời gian thực các chỉ số khảo sát thực địa trên toàn hệ thống (Đồng bộ Đám mây Cloudflare KV)</p>
         </div>
         <div class="analytics-actions">
-          <button type="button" class="btn-sync" onclick="dispatchSyncQueue(true)">🔄 Đồng Bộ Tất Cả</button>
+          <button type="button" class="btn-sync" onclick="handleSyncAllAnalytics()">🔄 Đồng Bộ Tất Cả</button>
           <button type="button" class="btn-export" onclick="exportToCSV()">📥 Xuất Báo Cáo CSV</button>
           <button type="button" class="btn-sysinfo" onclick="openSystemInfoModal()">ℹ️ Thông Số Kỹ Thuật</button>
         </div>

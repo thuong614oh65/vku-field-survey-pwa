@@ -582,6 +582,9 @@ async function pullSurveysFromCloud() {
       }
       if (hasNew) {
         refreshQueueUI();
+        if (typeof renderAnalyticsDashboard === 'function') {
+          renderAnalyticsDashboard();
+        }
       }
     }
   } catch (err) {
@@ -603,6 +606,17 @@ window.handleDeleteSurveyItem = async (id) => {
     }
     showToast('Đã xóa phiếu khảo sát.');
     refreshQueueUI();
+    if (typeof renderAnalyticsDashboard === 'function') {
+      renderAnalyticsDashboard();
+    }
+  }
+};
+
+window.handleSyncAllAnalytics = async () => {
+  await dispatchSyncQueue(true);
+  await pullSurveysFromCloud();
+  if (typeof renderAnalyticsDashboard === 'function') {
+    renderAnalyticsDashboard();
   }
 };
 
@@ -632,6 +646,9 @@ async function dispatchSyncQueue(showNotice = true) {
 
     showToast(`🚀 Đã TỰ ĐỘNG đồng bộ thành công ${pendingItems.length} phiếu khảo sát!`, 3000);
     refreshQueueUI();
+    if (typeof renderAnalyticsDashboard === 'function') {
+      renderAnalyticsDashboard();
+    }
   } catch (err) {
     console.error('Lỗi trong tiến trình đồng bộ:', err);
     showToast('❌ Lỗi xảy ra khi đồng bộ hàng đợi!');
