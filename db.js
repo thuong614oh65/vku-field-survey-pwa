@@ -75,6 +75,20 @@ async function addSurveyRecord(data) {
 }
 
 /**
+ * Cập nhật hoặc chèn một phiếu khảo sát (Upsert)
+ */
+async function upsertSurveyRecord(data) {
+  const db = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_SURVEYS, 'readwrite');
+    const store = tx.objectStore(STORE_SURVEYS);
+    const request = store.put(data);
+    request.onsuccess = () => resolve(data);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/**
  * Lấy tất cả các phiếu khảo sát
  */
 async function getAllSurveyRecords() {
@@ -196,6 +210,7 @@ async function clearDraftForm() {
 // Xuất các phương thức ra window
 window.SurveyDB = {
   addSurveyRecord,
+  upsertSurveyRecord,
   getAllSurveyRecords,
   getPendingSurveyRecords,
   markSurveyAsSynced,

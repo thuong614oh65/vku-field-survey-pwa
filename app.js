@@ -41,8 +41,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btn-sync-queue').addEventListener('click', () => dispatchSyncQueue(true));
   document.getElementById('btn-export-csv').addEventListener('click', exportToCSV);
 
-  // 8. Tải danh sách hàng đợi ban đầu
+  // 8. Tải danh sách hàng đợi ban đầu & kéo dữ liệu Cloud
   refreshQueueUI();
+  pullSurveysFromCloud();
 
   // 9. Đăng ký Service Worker
   registerServiceWorker();
@@ -80,10 +81,12 @@ window.switchTab = function (tabName) {
     if (typeof triggerAutoSyncIfOnline === 'function') {
       triggerAutoSyncIfOnline();
     }
+    pullSurveysFromCloud();
   } else if (tabName === 'analytics') {
     analyticsSection.classList.remove('hidden');
     btnAnalytics.classList.add('active');
     renderAnalyticsDashboard();
+    pullSurveysFromCloud();
   }
 };
 
@@ -245,6 +248,13 @@ function setupNetworkMonitoring() {
   setInterval(() => {
     triggerAutoSyncIfOnline();
   }, 2500);
+
+  // Tự động đồng bộ kéo dữ liệu mới nhất từ Cloud mỗi 5 giây nếu đang Online
+  setInterval(() => {
+    if (navigator.onLine) {
+      pullSurveysFromCloud();
+    }
+  }, 5000);
 }
 
 function showToast(message, duration = 3000) {
@@ -425,9 +435,10 @@ function setupFormSubmission() {
       await window.SurveyDB.addSurveyRecord(record);
 
       if (isOnline) {
-        showToast('✅ Đã gửi phiếu khảo sát thành công (Trực tuyến)!');
+        postSurveyToCloud(record);
+        showToast('✅ Đã gửi và đồng bộ phiếu lên Cloud thành công!');
       } else {
-        showToast('💾 Mất mạng: Đã gắn UUID và lưu vào hàng đợi PENDING_SYNC!', 4500);
+        showToast('💾 Mất mạng: Đã gắn UUID và lưu vào hàng đợi PENDING_SYNC! Sẽ tự đồng bộ lên Cloud khi có mạng!', 4500);
       }
 
       // Xóa bản nháp trong IndexedDB
@@ -529,18 +540,71 @@ async function refreshQueueUI() {
   }
 }
 
+/* ==========================================================
+ * 7. ĐỒNG BỘ HÀNG ĐỢI TUẦN TỰ LÊN CLOUD (SEQUENTIAL CLOUD SYNC)
+ * ========================================================== */
+let isSyncing = false;
+
+async function postSurveyToCloud(record) {
+  if (!navigator.onLine) return false;
+  try {
+    const payload = { ...record, status: 'SYNCED' };
+    const res = await fetch('./api/surveys', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('Lỗi gửi lên Cloud API:', err);
+    return false;
+  }
+}
+
+let isPullingCloud = false;
+async function pullSurveysFromCloud() {
+  if (isPullingCloud || !navigator.onLine) return;
+  try {
+    isPullingCloud = true;
+    const res = await fetch('./api/surveys?' + Date.now());
+    if (!res.ok) return;
+    const cloudItems = await res.json();
+    if (Array.isArray(cloudItems) && cloudItems.length > 0) {
+      const localPending = await window.SurveyDB.getPendingSurveyRecords();
+      const pendingIds = new Set(localPending.map((p) => p.id));
+
+      let hasNew = false;
+      for (const item of cloudItems) {
+        if (!pendingIds.has(item.id)) {
+          await window.SurveyDB.upsertSurveyRecord({ ...item, status: 'SYNCED' });
+          hasNew = true;
+        }
+      }
+      if (hasNew) {
+        refreshQueueUI();
+      }
+    }
+  } catch (err) {
+    console.warn('Lỗi kéo dữ liệu từ Cloud API:', err);
+  } finally {
+    isPullingCloud = false;
+  }
+}
+
 window.handleDeleteSurveyItem = async (id) => {
   if (confirm('Bạn có chắc muốn xóa bản ghi khảo sát này?')) {
     await window.SurveyDB.deleteSurveyRecord(id);
+    if (navigator.onLine) {
+      try {
+        await fetch(`./api/surveys?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      } catch (err) {
+        console.warn('Lỗi xóa trên Cloud API:', err);
+      }
+    }
     showToast('Đã xóa phiếu khảo sát.');
     refreshQueueUI();
   }
 };
-
-/* ==========================================================
- * 7. ĐỒNG BỘ HÀNG ĐỢI TUẦN TỰ (SEQUENTIAL QUEUE DISPATCH)
- * ========================================================== */
-let isSyncing = false;
 
 async function dispatchSyncQueue(showNotice = true) {
   if (isSyncing) return;
@@ -562,6 +626,7 @@ async function dispatchSyncQueue(showNotice = true) {
     // Gửi tuần tự từng bản ghi lên Server / Cloudflare Worker API
     for (const item of pendingItems) {
       await new Promise((resolve) => setTimeout(resolve, 350));
+      await postSurveyToCloud(item);
       await window.SurveyDB.markSurveyAsSynced(item.id);
     }
 

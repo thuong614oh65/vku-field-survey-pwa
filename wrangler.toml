@@ -1,0 +1,7 @@
+name = "vku-field-survey"
+compatibility_date = "2024-09-01"
+pages_build_output_dir = "."
+
+[[kv_namespaces]]
+binding = "SURVEY_KV"
+id = "5e6ac441daad4efb8cd505c512d49d62"
