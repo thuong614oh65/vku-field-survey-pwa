@@ -181,23 +181,29 @@ body {
   width: 100%;
 }
 
-/* NAVIGATION TABS (TÍCH HỢP TUẦN 1-3) */
+/* NAVIGATION TABS COMPACT VỚI MENU 3 CHẤM */
+.nav-tabs-wrapper {
+  margin-bottom: 20px;
+}
+
 .nav-tabs {
   display: flex;
   gap: 12px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+  align-items: center;
 }
 
-.tab-btn {
+.tab-btn-main {
   flex: 1;
-  min-width: 200px;
-  padding: 12px 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 20px;
   border: 1.5px solid var(--border-color);
   background: #ffffff;
-  color: var(--text-muted);
+  color: var(--text-color);
   font-weight: 700;
-  font-size: 14px;
+  font-size: 15px;
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -205,17 +211,215 @@ body {
   text-align: center;
 }
 
-.tab-btn:hover {
+.tab-btn-main:hover {
   background: #f8fafc;
   border-color: var(--primary-color);
   color: var(--primary-color);
 }
 
-.tab-btn.active {
+.tab-btn-main.active {
   background: var(--primary-color);
   color: #ffffff;
   border-color: var(--primary-color);
   box-shadow: var(--shadow-md);
+}
+
+/* MORE MENU CONTAINER & 3-DOTS BUTTON */
+.more-menu-container {
+  position: relative;
+}
+
+.tab-btn-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 18px;
+  border: 1.5px solid var(--border-color);
+  background: #ffffff;
+  color: var(--text-color);
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+}
+
+.tab-btn-more:hover {
+  background: #f8fafc;
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.tab-btn-more.active {
+  background: var(--primary-light);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.more-badge {
+  background: var(--primary-color);
+  color: #ffffff;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+/* DROPDOWN MENU */
+.more-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 310px;
+  background: #ffffff;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.18), 0 4px 10px -2px rgba(0, 0, 0, 0.08);
+  padding: 8px 0;
+  z-index: 1000;
+  animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dropdown-header {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 8px 16px 4px 16px;
+}
+
+.dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.dropdown-item:hover {
+  background: #f1f5f9;
+}
+
+.dropdown-item.active {
+  background: var(--primary-light);
+  color: var(--primary-color);
+}
+
+.dropdown-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.dropdown-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdown-text strong {
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.dropdown-text small {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
+.item-badge {
+  background: var(--primary-color);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 6px 0;
+  border: none;
+}
+
+/* NÚT QUAY LẠI KHẢO SÁT */
+.header-title-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.btn-back-to-form {
+  background: #ffffff;
+  border: 1.5px solid var(--border-color);
+  color: var(--primary-color);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-back-to-form:hover {
+  background: var(--primary-color);
+  color: #ffffff;
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-md);
+  transform: translateX(-2px);
+}
+
+@media (max-width: 600px) {
+  .nav-tabs {
+    gap: 8px;
+  }
+  .tab-btn-main {
+    padding: 11px 14px;
+    font-size: 13.5px;
+  }
+  .tab-btn-more {
+    padding: 11px 12px;
+    font-size: 13px;
+  }
+  .more-dropdown {
+    width: 280px;
+    right: 0;
+  }
+  .header-title-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
 }
 
 .grid-layout {

@@ -41,17 +41,60 @@
 
   <!-- MAIN CONTAINER -->
   <main class="main-content">
-    <!-- NAVIGATION TABS SẢN PHẨM THỰC TẾ -->
-    <div class="nav-tabs">
-      <button id="tab-btn-form" class="tab-btn active" onclick="switchTab('form')">
-        ✍️ Khảo Sát Mới
-      </button>
-      <button id="tab-btn-queue" class="tab-btn" onclick="switchTab('queue')">
-        📋 Hàng Đợi & Lịch Sử (<span id="total-count">0</span>)
-      </button>
-      <button id="tab-btn-analytics" class="tab-btn" onclick="switchTab('analytics')">
-        📊 Thống Kê & Báo Cáo
-      </button>
+    <!-- NAVIGATION TABS SẢN PHẨM THỰC TẾ: NÚT PHIẾU KHẢO SÁT & MENU 3 CHẤM -->
+    <div class="nav-tabs-wrapper">
+      <div class="nav-tabs">
+        <button id="tab-btn-form" type="button" class="tab-btn tab-btn-main active" onclick="switchTab('form')">
+          📝 Phiếu Khảo Sát
+        </button>
+
+        <div class="more-menu-container">
+          <button id="btn-more-menu" type="button" class="tab-btn tab-btn-more" onclick="toggleMoreMenu(event)" title="Danh sách tùy chọn quản lý">
+            <span id="more-menu-label">⋮ Tùy Chọn Khác ▾</span>
+            <span id="more-menu-badge" class="more-badge hidden">0</span>
+          </button>
+
+          <!-- MENU DROPDOWN XỔ XUỐNG KHI BẤM DẤU 3 CHẤM -->
+          <div id="more-menu-dropdown" class="more-dropdown hidden">
+            <div class="dropdown-header">DANH MỤC LỰA CHỌN</div>
+
+            <button id="tab-btn-queue" type="button" class="dropdown-item" onclick="selectTabFromMenu('queue')">
+              <span class="dropdown-icon">📋</span>
+              <div class="dropdown-text">
+                <strong>Hàng Đợi & Lịch Sử</strong>
+                <small>Bản ghi ngoại tuyến & đã đồng bộ</small>
+              </div>
+              <span class="item-badge" id="total-count">0</span>
+            </button>
+
+            <button id="tab-btn-analytics" type="button" class="dropdown-item" onclick="selectTabFromMenu('analytics')">
+              <span class="dropdown-icon">📊</span>
+              <div class="dropdown-text">
+                <strong>Thống Kê & Báo Cáo</strong>
+                <small>Dashboard phân tích KPI & biểu đồ</small>
+              </div>
+            </button>
+
+            <div class="dropdown-divider"></div>
+
+            <button type="button" class="dropdown-item" onclick="exportToCSV(); closeMoreMenu();">
+              <span class="dropdown-icon">📥</span>
+              <div class="dropdown-text">
+                <strong>Xuất File Báo Cáo CSV</strong>
+                <small>Tải bảng Excel UTF-8</small>
+              </div>
+            </button>
+
+            <button type="button" class="dropdown-item" onclick="openSystemInfoModal(); closeMoreMenu();">
+              <span class="dropdown-icon">ℹ️</span>
+              <div class="dropdown-text">
+                <strong>Thông Số Kỹ Thuật</strong>
+                <small>Cấu hình PWA, Cache & IndexedDB</small>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- TAB 1: BIỂU MẪU KHẢO SÁT HIỆN TRƯỜNG -->
@@ -219,9 +262,14 @@
     <!-- TAB 2: HÀNG ĐỢI NGOẠI TUYẾN & ĐỒNG BỘ -->
     <section id="section-queue" class="content-section hidden">
       <div class="list-header-card">
-        <div>
-          <h2>📋 Hàng Đợi & Lịch Sử Khảo Sát</h2>
-          <p>Dữ liệu lưu trữ an toàn trên thiết bị, TỰ ĐỘNG đồng bộ 100% khi có mạng</p>
+        <div class="header-title-group">
+          <button type="button" class="btn-back-to-form" onclick="switchTab('form')" title="Quay lại phiếu khảo sát">
+            ⬅️ Khảo Sát Mới
+          </button>
+          <div>
+            <h2>📋 Hàng Đợi & Lịch Sử Khảo Sát</h2>
+            <p>Dữ liệu lưu trữ an toàn trên thiết bị, TỰ ĐỘNG đồng bộ 100% khi có mạng</p>
+          </div>
         </div>
         <div class="header-action-btns">
           <button type="button" id="btn-sync-queue" class="btn-sync" title="Hệ thống tự động đồng bộ khi có mạng. Bạn cũng có thể bấm để đồng bộ tức thì.">
@@ -241,9 +289,14 @@
     <!-- TAB 3: TRUNG TÂM THỐNG KÊ & BÁO CÁO (DASHBOARD & ANALYTICS) -->
     <section id="section-analytics" class="content-section hidden">
       <div class="analytics-header-card">
-        <div class="analytics-title-wrap">
-          <h2>📊 Trung Tâm Thống Kê & Báo Cáo Dữ Liệu</h2>
-          <p>Tổng hợp thời gian thực các chỉ số khảo sát thực địa trên toàn hệ thống (Đồng bộ Đám mây Cloudflare KV)</p>
+        <div class="header-title-group">
+          <button type="button" class="btn-back-to-form" onclick="switchTab('form')" title="Quay lại phiếu khảo sát">
+            ⬅️ Khảo Sát Mới
+          </button>
+          <div class="analytics-title-wrap">
+            <h2>📊 Trung Tâm Thống Kê & Báo Cáo Dữ Liệu</h2>
+            <p>Tổng hợp thời gian thực các chỉ số khảo sát thực địa trên toàn hệ thống (Đồng bộ Đám mây Cloudflare KV)</p>
+          </div>
         </div>
         <div class="analytics-actions">
           <button type="button" class="btn-sync" onclick="handleSyncAllAnalytics()">🔄 Đồng Bộ Tất Cả</button>

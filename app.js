@@ -53,8 +53,36 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 /* ==========================================================
- * 0. ĐIỀU HƯỚNG TABS SẢN PHẨM THỰC TẾ
+ * 0. ĐIỀU HƯỚNG GIAO DIỆN & MENU 3 CHẤM (MORE OPTIONS)
  * ========================================================== */
+window.toggleMoreMenu = function (e) {
+  if (e) e.stopPropagation();
+  const dropdown = document.getElementById('more-menu-dropdown');
+  if (dropdown) {
+    dropdown.classList.toggle('hidden');
+  }
+};
+
+window.closeMoreMenu = function () {
+  const dropdown = document.getElementById('more-menu-dropdown');
+  if (dropdown) {
+    dropdown.classList.add('hidden');
+  }
+};
+
+window.selectTabFromMenu = function (tabName) {
+  window.closeMoreMenu();
+  window.switchTab(tabName);
+};
+
+// Đóng menu khi bấm ra ngoài bất kỳ đâu trên màn hình
+document.addEventListener('click', (e) => {
+  const container = document.querySelector('.more-menu-container');
+  if (container && !container.contains(e.target)) {
+    window.closeMoreMenu();
+  }
+});
+
 window.switchTab = function (tabName) {
   const formSection = document.getElementById('section-form');
   const queueSection = document.getElementById('section-queue');
@@ -62,31 +90,44 @@ window.switchTab = function (tabName) {
   const btnForm = document.getElementById('tab-btn-form');
   const btnQueue = document.getElementById('tab-btn-queue');
   const btnAnalytics = document.getElementById('tab-btn-analytics');
+  const btnMore = document.getElementById('btn-more-menu');
+  const moreLabel = document.getElementById('more-menu-label');
 
   formSection.classList.add('hidden');
   queueSection.classList.add('hidden');
   analyticsSection.classList.add('hidden');
-  btnForm.classList.remove('active');
-  btnQueue.classList.remove('active');
-  btnAnalytics.classList.remove('active');
+  if (btnForm) btnForm.classList.remove('active');
+  if (btnQueue) btnQueue.classList.remove('active');
+  if (btnAnalytics) btnAnalytics.classList.remove('active');
+  if (btnMore) btnMore.classList.remove('active');
 
   if (tabName === 'form') {
     formSection.classList.remove('hidden');
-    btnForm.classList.add('active');
+    if (btnForm) btnForm.classList.add('active');
+    if (moreLabel) moreLabel.textContent = '⋮ Tùy Chọn Khác ▾';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   } else if (tabName === 'queue') {
     queueSection.classList.remove('hidden');
-    btnQueue.classList.add('active');
+    if (btnQueue) btnQueue.classList.add('active');
+    if (btnMore) btnMore.classList.add('active');
+    if (moreLabel) {
+      const count = document.getElementById('total-count')?.textContent || '0';
+      moreLabel.textContent = `📋 Hàng Đợi (${count}) ▾`;
+    }
     refreshQueueUI();
-    // Tự động kiểm tra và đồng bộ ngay khi chuyển sang tab hàng đợi nếu có mạng
     if (typeof triggerAutoSyncIfOnline === 'function') {
       triggerAutoSyncIfOnline();
     }
     pullSurveysFromCloud();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   } else if (tabName === 'analytics') {
     analyticsSection.classList.remove('hidden');
-    btnAnalytics.classList.add('active');
+    if (btnAnalytics) btnAnalytics.classList.add('active');
+    if (btnMore) btnMore.classList.add('active');
+    if (moreLabel) moreLabel.textContent = '📊 Thống Kê ▾';
     renderAnalyticsDashboard();
     pullSurveysFromCloud();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 };
 
@@ -479,6 +520,12 @@ async function refreshQueueUI() {
     // Cập nhật tổng số lượng
     const totalCountEl = document.getElementById('total-count');
     if (totalCountEl) totalCountEl.textContent = allRecords.length;
+
+    const moreBadge = document.getElementById('more-menu-badge');
+    if (moreBadge) {
+      moreBadge.textContent = allRecords.length;
+      moreBadge.classList.toggle('hidden', allRecords.length === 0);
+    }
 
     // Cập nhật Badge PENDING_SYNC
     const pendingBadge = document.getElementById('pending-badge');
