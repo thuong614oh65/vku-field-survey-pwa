@@ -8,7 +8,7 @@
 
 ## 1. GENERAL INFORMATION & DELIVERABLE LINKS
 * **Team Members:**
-  1. Nguyễn Thị Thương — Student ID: 23IT.B219 — Role: Fullstack Developer & Offline-First Architect — Contribution: 100%
+  1. Nguyễn Thị Thương — Student ID: 23IT.B219 — Email: thuongnt.23itb@vku.udn.vn — Role: Fullstack Developer & Offline-First Architect — Contribution: 100%
 * **🔗 Live Demo URL:** `https://vku-field-survey-28x.pages.dev` (hoặc `https://dd876542.vku-field-survey-28x.pages.dev`)
 * **💻 GitHub Repository:** `https://github.com/thuong614oh65/vku-field-survey-pwa`
 * **🎥 Video Demo (Optional):** Video thực nghiệm 2–3 phút kịch bản ngắt mạng (Airplane Mode) và tự động đồng bộ khi có mạng.
