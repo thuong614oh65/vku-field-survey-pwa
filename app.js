@@ -76,6 +76,10 @@ window.switchTab = function (tabName) {
     queueSection.classList.remove('hidden');
     btnQueue.classList.add('active');
     refreshQueueUI();
+    // Tự động kiểm tra và đồng bộ ngay khi chuyển sang tab hàng đợi nếu có mạng
+    if (typeof triggerAutoSyncIfOnline === 'function') {
+      triggerAutoSyncIfOnline();
+    }
   } else if (tabName === 'analytics') {
     analyticsSection.classList.remove('hidden');
     btnAnalytics.classList.add('active');
@@ -158,9 +162,38 @@ async function restoreDraftForm() {
 }
 
 /* ==========================================================
- * 2. QUẢN LÝ TRẠNG THÁI MẠNG (ONLINE / OFFLINE) & TỰ ĐỘNG ĐỒNG BỘ
+ * 2. QUẢN LÝ TRẠNG THÁI MẠNG (ONLINE / OFFLINE) & TỰ ĐỘNG ĐỒNG BỘ 100%
  * ========================================================== */
 let autoSyncTimer = null;
+
+async function triggerAutoSyncIfOnline() {
+  if (isSyncing) return;
+  try {
+    const pending = await window.SurveyDB.getPendingSurveyRecords();
+    if (pending.length === 0) return;
+
+    let online = navigator.onLine;
+    if (!online) {
+      try {
+        await fetch('./__healthcheck?' + Date.now(), { method: 'HEAD', cache: 'no-store' });
+        online = true;
+      } catch {
+        online = false;
+      }
+    }
+
+    if (online) {
+      const netIndicator = document.getElementById('net-indicator');
+      const offlineBanner = document.getElementById('offline-banner');
+      netIndicator.textContent = '🟢 Online';
+      netIndicator.className = 'badge online';
+      offlineBanner.classList.add('hidden');
+      await dispatchSyncQueue(false);
+    }
+  } catch (err) {
+    console.error('Lỗi khi tự động đồng bộ ngầm:', err);
+  }
+}
 
 function setupNetworkMonitoring() {
   const netIndicator = document.getElementById('net-indicator');
@@ -172,15 +205,11 @@ function setupNetworkMonitoring() {
       netIndicator.className = 'badge online';
       offlineBanner.classList.add('hidden');
 
-      // TỰ ĐỘNG ĐỒNG BỘ: Chờ 600ms cho kết nối mạng ổn định hẳn rồi tự động đẩy hàng đợi
+      // TỰ ĐỘNG ĐỒNG BỘ: Chờ 400ms ổn định sóng rồi tự động đồng bộ ngay
       clearTimeout(autoSyncTimer);
-      autoSyncTimer = setTimeout(async () => {
-        const pending = await window.SurveyDB.getPendingSurveyRecords();
-        if (pending.length > 0) {
-          showToast(`⚡ Đã kết nối mạng: Đang TỰ ĐỘNG đồng bộ ${pending.length} phiếu chờ...`, 2500);
-          dispatchSyncQueue(false);
-        }
-      }, 600);
+      autoSyncTimer = setTimeout(() => {
+        triggerAutoSyncIfOnline();
+      }, 400);
     } else {
       netIndicator.textContent = '🔴 Offline';
       netIndicator.className = 'badge offline';
@@ -199,27 +228,23 @@ function setupNetworkMonitoring() {
     updateStatus(navigator.onLine);
   }
 
-  // Tự động kiểm tra đồng bộ khi người dùng quay lại tab/app (hữu ích trên iOS/Android khi vừa bật Wifi/4G)
+  // Tự động kích hoạt khi người dùng quay lại màn hình app (iOS Safari / Android khi vừa bật Wifi từ Control Center)
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && navigator.onLine) {
-      updateStatus(true);
+    if (document.visibilityState === 'visible') {
+      triggerAutoSyncIfOnline();
     }
   });
   window.addEventListener('focus', () => {
-    if (navigator.onLine) {
-      updateStatus(true);
-    }
+    triggerAutoSyncIfOnline();
+  });
+  window.addEventListener('pageshow', () => {
+    triggerAutoSyncIfOnline();
   });
 
-  // Tự động quét hàng đợi ngầm mỗi 10 giây nếu đang Online
-  setInterval(async () => {
-    if (navigator.onLine) {
-      const pending = await window.SurveyDB.getPendingSurveyRecords();
-      if (pending.length > 0) {
-        dispatchSyncQueue(false);
-      }
-    }
-  }, 10000);
+  // Tự động quét hàng đợi ngầm mỗi 2.5 giây: Nếu có phiếu PENDING_SYNC và có mạng thì TỰ ĐỘNG đồng bộ tức thì
+  setInterval(() => {
+    triggerAutoSyncIfOnline();
+  }, 2500);
 }
 
 function showToast(message, duration = 3000) {
@@ -532,7 +557,7 @@ async function dispatchSyncQueue(showNotice = true) {
     }
 
     isSyncing = true;
-    showToast(`🔄 Đang tự động đồng bộ ${pendingItems.length} phiếu PENDING_SYNC...`, 2000);
+    showToast(`⚡ Đang TỰ ĐỘNG đồng bộ ${pendingItems.length} phiếu khảo sát...`, 2000);
 
     // Gửi tuần tự từng bản ghi lên Server / Cloudflare Worker API
     for (const item of pendingItems) {
@@ -540,7 +565,7 @@ async function dispatchSyncQueue(showNotice = true) {
       await window.SurveyDB.markSurveyAsSynced(item.id);
     }
 
-    showToast(`🚀 Đã đồng bộ thành công ${pendingItems.length} phiếu khảo sát!`, 3000);
+    showToast(`🚀 Đã TỰ ĐỘNG đồng bộ thành công ${pendingItems.length} phiếu khảo sát!`, 3000);
     refreshQueueUI();
   } catch (err) {
     console.error('Lỗi trong tiến trình đồng bộ:', err);

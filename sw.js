@@ -4,7 +4,7 @@
  * Hỗ trợ Background Sync API cho việc đồng bộ ngầm khi có mạng.
  */
 
-const CACHE_NAME = 'vku-survey-cache-v4';
+const CACHE_NAME = 'vku-survey-cache-v5';
 const APP_SHELL_ASSETS = [
   './',
   './index.html',
@@ -27,9 +27,8 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// 2. Giai đoạn ACTIVATE: Dọn dẹp cache cũ
+// 2. Giai đoạn ACTIVATE: Dọn dẹp cache phiên bản cũ
 self.addEventListener('activate', (event) => {
-  console.log('[Service Worker] Kích hoạt phiên bản Cache v2.');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -48,6 +47,8 @@ self.addEventListener('activate', (event) => {
 // 3. Giai đoạn FETCH: Cache-First Strategy cho sub-second boot
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  // Bỏ qua cache đối với request kiểm tra kết nối mạng (healthcheck)
+  if (event.request.url.includes('__healthcheck')) return;
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
