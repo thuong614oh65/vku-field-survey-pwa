@@ -158,8 +158,10 @@ async function restoreDraftForm() {
 }
 
 /* ==========================================================
- * 2. QUẢN LÝ TRẠNG THÁI MẠNG (ONLINE / OFFLINE)
+ * 2. QUẢN LÝ TRẠNG THÁI MẠNG (ONLINE / OFFLINE) & TỰ ĐỘNG ĐỒNG BỘ
  * ========================================================== */
+let autoSyncTimer = null;
+
 function setupNetworkMonitoring() {
   const netIndicator = document.getElementById('net-indicator');
   const offlineBanner = document.getElementById('offline-banner');
@@ -170,8 +172,15 @@ function setupNetworkMonitoring() {
       netIndicator.className = 'badge online';
       offlineBanner.classList.add('hidden');
 
-      // Tự động kích hoạt đồng bộ hàng đợi khi vừa có mạng trở lại (Tuần tự)
-      dispatchSyncQueue(false);
+      // TỰ ĐỘNG ĐỒNG BỘ: Chờ 600ms cho kết nối mạng ổn định hẳn rồi tự động đẩy hàng đợi
+      clearTimeout(autoSyncTimer);
+      autoSyncTimer = setTimeout(async () => {
+        const pending = await window.SurveyDB.getPendingSurveyRecords();
+        if (pending.length > 0) {
+          showToast(`⚡ Đã kết nối mạng: Đang TỰ ĐỘNG đồng bộ ${pending.length} phiếu chờ...`, 2500);
+          dispatchSyncQueue(false);
+        }
+      }, 600);
     } else {
       netIndicator.textContent = '🔴 Offline';
       netIndicator.className = 'badge offline';
@@ -189,6 +198,28 @@ function setupNetworkMonitoring() {
     window.addEventListener('offline', () => updateStatus(false));
     updateStatus(navigator.onLine);
   }
+
+  // Tự động kiểm tra đồng bộ khi người dùng quay lại tab/app (hữu ích trên iOS/Android khi vừa bật Wifi/4G)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && navigator.onLine) {
+      updateStatus(true);
+    }
+  });
+  window.addEventListener('focus', () => {
+    if (navigator.onLine) {
+      updateStatus(true);
+    }
+  });
+
+  // Tự động quét hàng đợi ngầm mỗi 10 giây nếu đang Online
+  setInterval(async () => {
+    if (navigator.onLine) {
+      const pending = await window.SurveyDB.getPendingSurveyRecords();
+      if (pending.length > 0) {
+        dispatchSyncQueue(false);
+      }
+    }
+  }, 10000);
 }
 
 function showToast(message, duration = 3000) {
@@ -484,7 +515,10 @@ window.handleDeleteSurveyItem = async (id) => {
 /* ==========================================================
  * 7. ĐỒNG BỘ HÀNG ĐỢI TUẦN TỰ (SEQUENTIAL QUEUE DISPATCH)
  * ========================================================== */
+let isSyncing = false;
+
 async function dispatchSyncQueue(showNotice = true) {
+  if (isSyncing) return;
   if (!navigator.onLine) {
     if (showNotice) showToast('⚠️ Thiết bị đang ngoại tuyến, không thể đồng bộ!');
     return;
@@ -497,7 +531,8 @@ async function dispatchSyncQueue(showNotice = true) {
       return;
     }
 
-    showToast(`🔄 Đang đồng bộ tuần tự ${pendingItems.length} phiếu PENDING_SYNC...`, 2000);
+    isSyncing = true;
+    showToast(`🔄 Đang tự động đồng bộ ${pendingItems.length} phiếu PENDING_SYNC...`, 2000);
 
     // Gửi tuần tự từng bản ghi lên Server / Cloudflare Worker API
     for (const item of pendingItems) {
@@ -505,11 +540,13 @@ async function dispatchSyncQueue(showNotice = true) {
       await window.SurveyDB.markSurveyAsSynced(item.id);
     }
 
-    showToast(`🚀 Đã đồng bộ thành công ${pendingItems.length} phiếu khảo sát!`);
+    showToast(`🚀 Đã đồng bộ thành công ${pendingItems.length} phiếu khảo sát!`, 3000);
     refreshQueueUI();
   } catch (err) {
     console.error('Lỗi trong tiến trình đồng bộ:', err);
     showToast('❌ Lỗi xảy ra khi đồng bộ hàng đợi!');
+  } finally {
+    isSyncing = false;
   }
 }
 
