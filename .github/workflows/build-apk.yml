@@ -9,33 +9,31 @@ jobs:
   build-apk:
     name: Build Native Android APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Set up Java JDK 21
+      - name: Set up Java JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '21'
+          java-version: '17'
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
       - name: Install NPM Dependencies
-        run: npm ci || npm install
+        run: npm install
 
       - name: Build Web Assets & Sync Capacitor
         run: |
           node build.js
           npx cap sync android
-
-      - name: Set up Android SDK & Build Tools
-        uses: android-actions/setup-android@v3
 
       - name: Grant Execute Permission to Gradle Wrapper
         working-directory: android
@@ -51,3 +49,14 @@ jobs:
           name: VKU-Field-Survey-Android-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+
+      - name: Create or Update GitHub Release with APK
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: v1.0.0
+          name: "VKU Field Survey Native App v1.0.0"
+          body: "File cài đặt ứng dụng Android (.APK) cho đề tài VKU Field Survey"
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
