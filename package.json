@@ -4,24 +4,35 @@
   "description": "VKU Field Survey - Offline Data Collection PWA & Capacitor (Mini-Project 1)",
   "main": "app.js",
   "scripts": {
+    "build": "node build.js",
     "start": "npx serve .",
-    "deploy": "wrangler pages deploy . --project-name vku-field-survey",
-    "cap:init": "npx cap init \"VKU Field Survey\" \"vn.udn.vku.fieldsurvey\" --web-dir .",
-    "cap:add": "npx cap add android",
-    "cap:sync": "npx cap sync",
-    "cap:open": "npx cap open android"
+    "deploy": "node build.js && wrangler pages deploy . --project-name vku-field-survey",
+    "cap:add:android": "npx cap add android",
+    "cap:add:ios": "npx cap add ios",
+    "cap:sync": "node build.js && npx cap sync",
+    "cap:open:android": "npx cap open android",
+    "cap:open:ios": "npx cap open ios"
   },
   "dependencies": {
-    "@capacitor/core": "^6.0.0",
-    "@capacitor/android": "^6.0.0",
-    "@capacitor/camera": "^6.0.0",
-    "@capacitor/network": "^6.0.0"
+    "@capacitor/android": "^6.2.2",
+    "@capacitor/camera": "^6.1.3",
+    "@capacitor/core": "^6.2.2",
+    "@capacitor/filesystem": "^6.0.4",
+    "@capacitor/ios": "^6.2.2",
+    "@capacitor/network": "^6.0.4"
   },
   "devDependencies": {
-    "@capacitor/cli": "^6.0.0",
+    "@capacitor/cli": "^6.2.2",
     "wrangler": "^4.129.0"
   },
-  "keywords": ["vku", "pwa", "offline-first", "indexeddb", "service-worker", "capacitor"],
+  "keywords": [
+    "vku",
+    "pwa",
+    "offline-first",
+    "indexeddb",
+    "service-worker",
+    "capacitor"
+  ],
   "author": "VKU Student",
   "license": "MIT"
 }

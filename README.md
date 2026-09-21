@@ -1,152 +1,98 @@
-# MINI-PROJECT 1: VKU FIELD SURVEY — OFFLINE DATA COLLECTION (PWA & CAPACITOR)
+# 📊 VKU FIELD SURVEY — HỆ THỐNG THU THẬP DỮ LIỆU THỰC ĐỊA NGOẠI TUYẾN
+## ĐÓNG GÓI APP THẬT SỰ CHO IPHONE (iOS) & ANDROID (PWA & CAPACITOR NATIVE)
 
 **Học phần:** Lập trình ứng dụng di động đa nền tảng (Cross-Platform Mobile App Development)  
 **Thời lượng:** Tuần 3 – Tuần 4 | **Trọng số:** 10% điểm tổng kết  
 **Đơn vị:** Khoa Khoa học Máy tính — Trường Đại học Công nghệ Thông tin và Truyền thông Việt - Hàn (VKU)  
-**Mô hình thiết kế chuẩn:** ODK Collect & VKU Campus Facility Field Survey  
+**Sinh viên thực hiện:** Nguyễn Thị Thương — **MSSV:** 23IT.B219 — **Lớp:** 23ITB  
+**Email sinh viên:** [thuongnt.23itb@vku.udn.vn](mailto:thuongnt.23itb@vku.udn.vn)  
+**Giảng viên hướng dẫn:** TS. Nguyễn Thanh Tuấn  
 
 ---
 
-## 🎯 1. TỔNG QUAN DỰ ÁN & VẤN ĐỀ CẦN GIẢI QUYẾT (PROBLEM SCENARIO)
-Cán bộ kiểm định cơ sở vật chất và sinh viên điều tra thực địa tại trường VKU thực hiện khảo sát hiện trường các phòng học, phòng máy tính Lab, máy chiếu, điều hòa và hệ thống điện tại các khu vực tầng hầm, các dãy nhà xa (Khu A, Khu B, Khu C, Khu V, Ký túc xá, Khu dịch vụ) — nơi **hoàn toàn mất sóng Wi-Fi hoặc 4G/5G**.
-
-Dự án này xây dựng ứng dụng theo kiến trúc **Offline-First**, đảm bảo:
-- Hoạt động 100% khi mất mạng với tốc độ nạp trang < 1 giây nhờ **Service Worker (Cache-First)**.
-- Không bao giờ mất dữ liệu nháp khi tải lại trang nhờ cơ chế **Real-time Draft Persistence vào IndexedDB**.
-- Thu thập vị trí GPS ("Li cây sừn") và chụp ảnh hiện trường (tự động nén qua Canvas ~100KB).
-- Lưu trữ hàng đợi ngoại tuyến cấp phát chuỗi mã **UUID v4** chuẩn RFC-4122 và trạng thái **`PENDING_SYNC`**.
-- Tự động phát hiện khi có mạng lại qua `window.ononline` và **Background Sync API** để đồng bộ tuần tự lên máy chủ.
-- Sẵn sàng bọc thành file **Native Android APK** qua **Capacitor Bridge** và Camera/Network plugin trong Tuần 4.
+## 🌐 1. ĐỊA CHỈ TRẢI NGHIỆM TRỰC TIẾP (LIVE DEMO)
+* **Live Web App & PWA Standalone:** **[https://vku-field-survey-28x.pages.dev/](https://vku-field-survey-28x.pages.dev/)**
+* Hệ thống hoạt động 100% Offline-First, cài đặt trực tiếp lên điện thoại iPhone và Android chỉ với 1 chạm.
 
 ---
 
-## 📋 2. BẢNG KIỂM ĐỐI SOÁT TÍNH NĂNG (FEATURE CHECKLIST)
+## 🚀 2. CÁC TÍNH NĂNG MỚI ĐƯỢC NÂNG CẤP TOÀN DIỆN
 
-| Yêu cầu kỹ thuật theo đề bài | Trạng thái | Minh chứng kỹ thuật trong mã nguồn |
-| :--- | :---: | :--- |
-| **PWA Standalone Installation** | ✅ Đạt 100% | `manifest.json`: `display: standalone`, `theme_color: #0284c7`, icon 192x192 & 512x512. |
-| **Service Worker Cache-First Boot** | ✅ Đạt 100% | `sw.js`: Pre-cache App Shell (HTML, CSS, JS, Manifest), nạp trang dưới 1 giây khi offline. |
-| **Multi-step Inspection Form** | ✅ Đạt 100% | `index.html`: Đầy đủ Người phỏng vấn, Mã DTV/SV, Thời gian, Tòa nhà, Tầng, Số phòng, Người trả lời, Địa chỉ. |
-| **Định vị GPS ("Li cây sừn")** | ✅ Đạt 100% | Thu thập Vĩ độ, Kinh độ, Sai số (±m) và link tra cứu trực tiếp trên Google Maps. |
-| **Camera & Nén ảnh Canvas** | ✅ Đạt 100% | Nén ảnh tự động về chuẩn JPEG ~100KB, lưu trực tiếp vào IndexedDB không gây đầy bộ nhớ. |
-| **5 Category Thiết bị & 1-5 Sao** | ✅ Đạt 100% | Gồm `Hardware`, `Projector`, `AC`, `Electrical`, `Furniture`, `Market/Service` và bộ chọn 1–5 sao. |
-| **Real-time Draft Persistence** | ✅ Đạt 100% | `db.js` & `app.js`: Tự động lưu bản nháp vào IndexedDB khi gõ, tự khôi phục khi tải lại trang (F5). |
-| **Offline Queue (PENDING_SYNC)** | ✅ Đạt 100% | Mỗi phiếu offline được cấp phát `UUID` độc nhất, timestamp ISO và gắn nhãn màu cam `PENDING_SYNC`. |
-| **Background Sync & Auto-Dispatch** | ✅ Đạt 100% | Bắt sự kiện `window.ononline`, tự động đồng bộ tuần tự từng bản ghi và đổi trạng thái sang `SYNCED`. |
-| **Xuất báo cáo Excel / CSV** | ✅ Đạt 100% | Xuất file CSV chuẩn UTF-8 BOM mở trực tiếp trên Microsoft Excel không bị lỗi font tiếng Việt. |
-| **Capacitor Native APK Setup** | ✅ Đạt 100% | Cấu hình `capacitor.config.json` và dependencies `@capacitor/camera`, `@capacitor/network` trong `package.json`. |
+### 📸 2.1. Tính Năng Lưu Ảnh Trực Tiếp Vào Máy Điện Thoại (Photo Storage / Gallery)
+Trước đây, ảnh chỉ được lưu tạm thời vào IndexedDB để gửi báo cáo. Giờ đây hệ thống đã bổ sung cơ chế lưu ảnh toàn diện:
+1. **Tự động lưu ảnh vào máy khi chụp:** Ngay khi mở camera chụp và nén ảnh qua Canvas, hệ thống tự động xuất và lưu tệp ảnh chất lượng cao vào bộ nhớ máy điện thoại (`Downloads` / `Thư viện ảnh`).
+2. **Nút bấm lưu thủ công:** Bổ sung nút `📥 Lưu Ảnh Vào Máy Điện Thoại` ngay bên dưới ảnh xem trước để người dùng chủ động tải lại bất kỳ lúc nào.
+3. **Tải ảnh từ lịch sử khảo sát:** Tại mục *"Hàng Đợi & Lịch Sử"*, mỗi phiếu khảo sát có ảnh đính kèm đều có nút `📥 Tải ảnh về máy` để điều tra viên dễ dàng lấy lại tư liệu kiểm định thực địa.
+4. **Hỗ trợ Web Share API & Filesystem:** Trên iPhone (iOS Safari) và Android (Chrome), ảnh được chia sẻ trực tiếp vào album ảnh hệ thống (**Save to Photos / Lưu hình ảnh**). Trong môi trường Capacitor Native, ảnh được ghi qua `@capacitor/filesystem`.
 
 ---
 
-## 🏗️ 3. SƠ ĐỒ KIẾN TRÚC HỆ THỐNG (SYSTEM ARCHITECTURE)
+### 📱 2.2. Đóng Gói Thành App Thật Sự Chạy Trên Điện Thoại iPhone & Android
 
-```mermaid
-flowchart TD
-    subgraph Client [Thiết Bị Di Động Của Khảo Sát Viên]
-        UI[Giao diện Form Khảo Sát VKU Field Survey]
-        DraftStore[(IndexedDB: draft - Bản Nháp)]
-        SurveyStore[(IndexedDB: surveys - PENDING_SYNC)]
-        SW[Service Worker: Cache-First]
-    end
+#### A. Đối với điện thoại Android:
+1. **Dự án Android Studio hoàn chỉnh (`android/`):**
+   * Đã tích hợp Capacitor 6 với 3 plugin cốt lõi: `@capacitor/camera`, `@capacitor/filesystem`, `@capacitor/network`.
+   * Cấu hình đầy đủ quyền trong `AndroidManifest.xml`: `CAMERA`, `READ_EXTERNAL_STORAGE`, `WRITE_EXTERNAL_STORAGE`, `READ_MEDIA_IMAGES`, `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`.
+2. **Quy trình Build File Cài Đặt `.apk` Miễn Phí (GitHub Actions):**
+   * Tệp quy trình `.github/workflows/build-apk.yml` tự động biên dịch mã nguồn thành file `app-debug.apk` trên môi trường đám mây Ubuntu của GitHub mỗi khi bạn push code.
+   * Bạn chỉ cần tải file `.apk` về điện thoại Android và mở cài đặt là có app native độc lập 100%!
 
-    subgraph HardwareAPIs [Phần Cứng & Trình Duyệt]
-        Cam[Camera / Nén Canvas 100KB]
-        GPS[Geolocation GPS - Li cây sừn]
-    end
-
-    subgraph NetworkController [Bộ Điều Khiển Kết Nối]
-        NetState{Kiểm tra Mạng?}
-    end
-
-    subgraph CloudServer [Máy Chủ Đám Mây]
-        Pages[Cloudflare Pages / Vercel]
-        API[Cloudflare Worker / Backend REST API]
-        CloudDB[(Hệ Thống Cơ Sở Dữ Liệu Trung Tâm)]
-    end
-
-    UI <-->|Tự động lưu & Khôi phục nháp thời gian thực sau F5| DraftStore
-    Cam -->|Ảnh nén ~100KB| UI
-    GPS -->|Tọa độ Lat, Lng, Acc| UI
-    UI -->|Nạp trang tức thì từ Cache Storage| SW
-
-    UI -->|Bấm Gửi Khảo Sát| NetState
-    NetState -->|🔴 Mất mạng Offline| SurveyStore
-    NetState -->|🟢 Có mạng Online| API
-
-    NetworkController -->|Bắt sự kiện window.ononline| SurveyStore
-    SurveyStore -->|Đồng bộ tuần tự các bản ghi PENDING_SYNC| API
-    API --> CloudDB
-    API -->|Đổi trạng thái thành SYNCED| SurveyStore
-```
+#### B. Đối với điện thoại iPhone (iOS):
+1. **Dự án Xcode hoàn chỉnh (`ios/App/App.xcworkspace`):**
+   * Cấu hình chi tiết các chuỗi quyền `Info.plist`: `NSCameraUsageDescription`, `NSPhotoLibraryAddUsageDescription`, `NSPhotoLibraryUsageDescription`, `NSLocationWhenInUseUsageDescription`.
+2. **Cài đặt App Độc Lập 100% Không Mất Tiền (PWA Standalone WebAPK):**
+   * Trên iPhone, mở trình duyệt Safari truy cập: `https://vku-field-survey-28x.pages.dev/`
+   * Bấm nút **Chia sẻ (Share - biểu tượng ô vuông có mũi tên trỏ lên)** ở cạnh dưới màn hình.
+   * Chọn **"Thêm vào MH chính" (Add to Home Screen)** và bấm **Thêm (Add)**.
+   * **Kết quả:** Trên màn hình chính iPhone sẽ xuất hiện icon ứng dụng **VKU Field Survey** riêng biệt. Khi mở lên, app chạy toàn màn hình độc lập (không có thanh địa chỉ Safari), chụp ảnh lưu vào máy và lưu offline bằng IndexedDB mượt mà y hệt như app tải từ App Store!
 
 ---
 
-## 🚀 4. HƯỚNG DẪN CÀI ĐẶT & CHẠY THỬ NGHIỆM CỤC BỘ (LOCAL SETUP)
+## 📋 3. BẢNG KIỂM TRA TÍNH NĂNG (FEATURE CHECKLIST)
 
-### 4.1. Khởi động Web PWA
-1. Mở Terminal tại thư mục này:
-   ```bash
-   npx serve .
-   ```
-2. Truy cập vào đường link hiển thị trên terminal: `http://localhost:3000`.
-
-### 4.2. Kịch bản kiểm thử tính năng Offline-First (Chrome DevTools)
-1. Mở trình duyệt Chrome, bấm phím `F12` -> tab **Application**:
-   - Kiểm tra mục **Manifest**: Theme color hiển thị `#0284c7`, Display là `standalone`.
-   - Kiểm tra mục **Service Workers**: Trạng thái màu xanh `activated and is running`.
-   - Kiểm tra mục **IndexedDB** -> `VKU_FieldSurvey_DB`: Có 2 bảng `surveys` và `draft`.
-2. Thử nghiệm tự động lưu nháp:
-   - Điền Tên phỏng vấn viên, Tòa nhà, Số phòng nhưng **không bấm Gửi**.
-   - Bấm `F5` tải lại trang -> Toàn bộ nội dung vừa gõ được khôi phục nguyên vẹn kèm thông báo xanh.
-3. Thử nghiệm ngắt mạng (Offline):
-   - Vào tab **Network** -> Chuyển từ `No throttling` sang **`Offline`**.
-   - Bấm **"Bắt Tọa Độ GPS"** và **"Mở Camera Chụp Ảnh Hiện Trường"**.
-   - Điền ghi chú lỗi và bấm **"Gửi Phiếu Khảo Sát"**.
-   - Thông báo hiện: *"Mất mạng: Đã gắn UUID và lưu vào hàng đợi PENDING_SYNC!"*.
-   - Bản ghi xuất hiện bên phải với nhãn màu cam **`⏳ PENDING_SYNC`** và mã UUID ngẫu nhiên.
-4. Thử nghiệm tự động đồng bộ khi có mạng lại:
-   - Chuyển tab **Network** từ `Offline` về lại **`No throttling`**.
-   - Ứng dụng lập tức phát hiện `🟢 Online` và tự động kích hoạt đồng bộ tuần tự, đổi nhãn phiếu sang màu xanh **`✅ SYNCED`**.
-5. Bấm nút **"Xuất CSV"** để tải file Excel báo cáo tiếng Việt đầy đủ.
+| STT | Yêu cầu tính năng | Trạng thái | Minh chứng kỹ thuật trong mã nguồn |
+|:---:|:---|:---:|:---|
+| 1 | **PWA Standalone & Icon** | ✅ Hoàn thành | `manifest.json`: `display: standalone`, icon chuẩn 192x192 & 512x512, cài đặt mượt mà trên iOS và Android. |
+| 2 | **Lưu ảnh vào máy điện thoại** | ✅ Mới bổ sung | `app.js` (`savePhotoToDevice`): Hỗ trợ tự động tải về, Web Share API, Capacitor Filesystem và nút tải lại trong lịch sử. |
+| 3 | **Camera & Nén ảnh Canvas** | ✅ Hoàn thành | Tối ưu ảnh chụp từ 5-10MB xuống ~100KB JPEG chống tràn bộ nhớ IndexedDB. |
+| 4 | **Offline Cache-First Boot** | ✅ Hoàn thành | `sw.js`: Pre-cache toàn bộ App Shell, nạp trang dưới 1 giây ngay cả khi tắt mạng. |
+| 5 | **Định vị GPS độ chính xác cao** | ✅ Hoàn thành | Lấy toạ độ Vĩ độ, Kinh độ, Sai số mét và link mở Google Maps trực tiếp. |
+| 6 | **5 Hạng mục & Đánh giá 1-5 sao** | ✅ Hoàn thành | Hardware, Projector, AC, Electrical, Furniture, Market/Service với radio 1-5 sao trực quan. |
+| 7 | **Real-time Draft Persistence** | ✅ Hoàn thành | `db.js`: Tự động lưu nháp vào IndexedDB khi gõ, phục hồi nguyên vẹn khi tải lại (F5). |
+| 8 | **Hàng đợi Offline (PENDING_SYNC)** | ✅ Hoàn thành | Cấp phát UUID v4 RFC-4122, timestamp ISO, gắn nhãn cam `PENDING_SYNC`. |
+| 9 | **Tự động đồng bộ khi có mạng** | ✅ Hoàn thành | Bắt sự kiện `online`, đồng bộ tuần tự lên Cloudflare KV / D1 / Máy chủ và đổi sang `✅ SYNCED`. |
+| 10 | **Xuất báo cáo Excel / CSV** | ✅ Hoàn thành | Tải file `.csv` chuẩn UTF-8 BOM hiển thị tiếng Việt hoàn hảo trên Excel. |
+| 11 | **Đóng gói Android Native** | ✅ Mới bổ sung | Thư mục `android/` hoàn chỉnh cho Android Studio + workflow build `.apk` tự động. |
+| 12 | **Đóng gói iOS Native** | ✅ Mới bổ sung | Thư mục `ios/` hoàn chỉnh cho Xcode + `Info.plist` cấp quyền Camera, Photo Library và GPS. |
 
 ---
 
-## 🌐 5. TRIỂN KHAI LÊN CLOUDFLARE PAGES (DELIVERABLE 1 - LIVE DEMO URL)
+## 💻 4. HƯỚNG DẪN THỰC THI & ĐÓNG GÓI TẠI MÁY CỦA BẠN
 
-```bash
-# 1. Đăng nhập Cloudflare bằng tài khoản sinh viên
-npx wrangler login
+### Bước 1: Đồng bộ mã nguồn và tệp web vào app
+```powershell
+cd "D:\TÀI LIỆU\LẬP TRÌNH ĐA NỀN TẢNG\CODE_BAITAP\Tuan_03_MiniProject1_VKU_FieldSurvey"
 
-# 2. Deploy toàn bộ dự án lên Cloudflare Pages
-npx wrangler pages deploy . --project-name vku-field-survey
-```
-*Sau khi chạy xong lệnh, bạn nhận được đường link Live Demo dạng:*  
-🔗 `https://vku-field-survey.pages.dev`
-
----
-
-## 📱 6. ĐÓNG GÓI THÀNH NATIVE ANDROID APK BẰNG CAPACITOR (TUẦN 4)
-
-Chạy các lệnh sau tại thư mục dự án để biên dịch thành file `.apk`:
-
-```bash
-# 1. Khởi tạo môi trường Capacitor
-npm run cap:init
-
-# 2. Thêm nền tảng Android
-npm run cap:add
-
-# 3. Đồng bộ mã nguồn Web PWA vào thư mục Android
+# Đóng gói web assets vào www và đồng bộ vào Android & iOS:
 npm run cap:sync
-
-# 4. Mở dự án trong Android Studio để Build file APK cài đặt
-npm run cap:open
 ```
-*Trong Android Studio, chọn menu **Build -> Build Bundle(s) / APK(s) -> Build APK(s)** để nhận file APK cài đặt lên điện thoại.*
+
+### Bước 2: Mở dự án trong Android Studio (nếu có máy cài Android Studio)
+```powershell
+npm run cap:open:android
+```
+Sau đó trong Android Studio, chọn **Build > Build Bundle(s) / APK(s) > Build APK(s)** để xuất file `.apk`.
+
+### Bước 3: Hoặc dùng GitHub Actions để tự động nhận file APK (Miễn phí 100%)
+1. Bạn commit và push mã nguồn lên repository GitHub của bạn:
+   ```powershell
+   git add .
+   git commit -m "feat: add photo local saving and native mobile app packaging"
+   git push origin main
+   ```
+2. Truy cập tab **Actions** trên GitHub repository của bạn:
+   * Chọn workflow **"Build Android APK"**.
+   * Sau khi máy chủ hoàn tất build (khoảng 2-3 phút), tải file **`app-debug.apk`** ở mục **Artifacts** về cài vào điện thoại Android.
 
 ---
-
-## 📦 7. BỘ SẢN PHẨM BÀN GIAO (SUBMISSION PACKAGE)
-1. **Live Demo URL:** `https://vku-field-survey.pages.dev`
-2. **GitHub Repository:** Đẩy thư mục này lên GitHub công khai.
-3. **Báo cáo kỹ thuật PDF (2–4 trang):** Đã soạn thảo sẵn tại file `BAO_CAO_KY_THUAT_REPORT.md` (chỉ cần in/lưu thành file PDF để nộp cho Thầy).
+*Bản quyền © 2026 Nguyễn Thị Thương (23IT.B219) — Trường ĐH CNTT&TT Việt - Hàn (VKU).*

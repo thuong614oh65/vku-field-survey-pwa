@@ -2,3 +2,9 @@ node_modules/
 .wrangler/
 .DS_Store
 Thumbs.db
+.gradle/
+build/
+android/app/build/
+android/.gradle/
+ios/App/Pods/
+ios/App/build/
