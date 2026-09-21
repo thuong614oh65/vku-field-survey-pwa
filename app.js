@@ -139,11 +139,11 @@ window.switchTab = function (tabName) {
  * 0.1 GIAO DIỆN TƯƠNG TÁC HẠNG MỤC (CHIPS) & ĐÁNH GIÁ SAO (STARS)
  * ========================================================== */
 const RATING_DESCRIPTIONS = {
-  1: '⭐ 1/5 • Kém / Hư hỏng nặng cần sửa gấp',
-  2: '⭐⭐ 2/5 • Dưới trung bình / Hoạt động chập chờn',
-  3: '⭐⭐⭐ 3/5 • Trung bình / Đạt yêu cầu cơ bản',
-  4: '⭐⭐⭐⭐ 4/5 • Tốt / Hoạt động ổn định',
-  5: '⭐⭐⭐⭐⭐ 5/5 • Rất tốt / Hoạt động hoàn hảo'
+  1: '⭐ 1/5 • Kém (Hỏng nặng)',
+  2: '⭐⭐ 2/5 • Dưới TB (Chập chờn)',
+  3: '⭐⭐⭐ 3/5 • Trung bình (Đạt chuẩn)',
+  4: '⭐⭐⭐⭐ 4/5 • Tốt (Ổn định)',
+  5: '⭐⭐⭐⭐⭐ 5/5 • Rất tốt (Hoàn hảo)'
 };
 
 function setupCategoryChips() {

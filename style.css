@@ -797,12 +797,21 @@ textarea:focus {
   color: #ffffff;
 }
 
-/* HIDDEN SELECT FOR FORM SYNC */
+/* ACCESSIBLE HIDDEN SELECT (PREVENTS HTML5 "NOT FOCUSABLE" SUBMIT BUG) */
 .hidden-select {
-  display: none !important;
+  position: absolute !important;
+  opacity: 0 !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  border: 0 !important;
+  pointer-events: none !important;
 }
 
-/* CATEGORY CHIPS GRID */
+/* CATEGORY CHIPS GRID - RESPONSIVE & TOUCH-OPTIMIZED */
 .category-chips-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -821,34 +830,35 @@ textarea:focus {
   background: #ffffff;
   border: 1.5px solid #e2e8f0;
   border-radius: 12px;
-  padding: 10px 12px;
+  padding: 10px 10px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   cursor: pointer;
   text-align: left;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  min-height: 52px;
 }
 
 .category-chip:hover {
   border-color: #38bdf8;
   background: #f0f9ff;
-  transform: translateY(-1.5px);
-  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.1);
+  transform: translateY(-1px);
 }
 
 .category-chip.active {
   border-color: #0284c7;
   background: #f0f9ff;
-  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25), 0 4px 12px rgba(2, 132, 199, 0.15);
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25), 0 4px 10px rgba(2, 132, 199, 0.12);
   transform: translateY(-1px);
 }
 
 .category-chip .chip-icon {
-  font-size: 24px;
+  font-size: 22px;
   line-height: 1;
   flex-shrink: 0;
 }
@@ -857,12 +867,16 @@ textarea:focus {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-width: 0;
 }
 
 .category-chip .chip-text strong {
-  font-size: 13px;
+  font-size: 12.5px;
   color: #1e293b;
-  line-height: 1.25;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .category-chip.active .chip-text strong {
@@ -871,12 +885,13 @@ textarea:focus {
 }
 
 .category-chip .chip-text small {
-  font-size: 11px;
+  font-size: 10.5px;
   color: #64748b;
   margin-top: 2px;
+  line-height: 1.2;
   white-space: nowrap;
-  text-overflow: ellipsis;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* INTERACTIVE STAR RATING */
@@ -884,11 +899,11 @@ textarea:focus {
   background: #ffffff;
   border: 1.5px solid #e2e8f0;
   border-radius: 14px;
-  padding: 16px;
+  padding: 14px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
 }
 
@@ -896,13 +911,13 @@ textarea:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .star-btn {
   background: none;
   border: none;
-  font-size: 38px;
+  font-size: 34px;
   line-height: 1;
   color: #cbd5e1;
   cursor: pointer;
@@ -910,19 +925,17 @@ textarea:focus {
   transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.15s;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
-.star-btn:hover {
-  transform: scale(1.22);
+.star-btn:hover,
+.star-btn:active {
+  transform: scale(1.15);
 }
 
 .star-btn.active {
   color: #f59e0b;
   text-shadow: 0 2px 10px rgba(245, 158, 11, 0.45);
-}
-
-.star-btn:active {
-  transform: scale(0.92);
 }
 
 .rating-badge-preview {
@@ -932,14 +945,17 @@ textarea:focus {
 }
 
 .rating-score-pill {
-  display: inline-block;
-  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12.5px;
   font-weight: 700;
-  padding: 7px 16px;
-  border-radius: 24px;
+  padding: 6px 14px;
+  border-radius: 20px;
   transition: all 0.25s ease;
   text-align: center;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  max-width: 100%;
 }
 
 .rating-score-pill.score-5 {

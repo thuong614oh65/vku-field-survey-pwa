@@ -4,7 +4,7 @@
  * Hỗ trợ Background Sync API cho việc đồng bộ ngầm khi có mạng.
  */
 
-const CACHE_NAME = 'vku-survey-cache-v11';
+const CACHE_NAME = 'vku-survey-cache-v12';
 const APP_SHELL_ASSETS = [
   './',
   './index.html',
@@ -13,7 +13,8 @@ const APP_SHELL_ASSETS = [
   './db.js',
   './manifest.json',
   './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icons/icon-512.png',
+  './icons/apple-touch-icon.png'
 ];
 
 // 1. Giai đoạn INSTALL: Pre-cache App Shell
