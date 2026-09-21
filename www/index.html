@@ -382,6 +382,102 @@
     </section>
   </main>
 
+  <!-- MODAL QUẢN LÝ CÀI ĐẶT & VÀO APP (INSTALL & LAUNCH APP MODAL) -->
+  <div id="modal-app-manager" class="modal-backdrop hidden" onclick="closeAppManagerModal(event)">
+    <div class="modal-card modal-app-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-icon" id="app-modal-icon">📲</span>
+          <div>
+            <h3 id="app-modal-title">Cài Đặt & Vào Ứng Dụng</h3>
+            <p id="app-modal-sub">VKU Field Survey • Trải nghiệm ứng dụng di động độc lập</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeAppManagerModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- NỘI DUNG 1: NẾU ĐÃ CÀI ĐẶT (TRẠNG THÁI "VÀO APP") -->
+        <div id="app-view-installed" class="app-view-box hidden">
+          <div class="app-status-banner success">
+            <span class="banner-icon">🎉</span>
+            <div>
+              <strong>Bạn đã cài đặt ứng dụng VKU Field Survey!</strong>
+              <p>Biểu tượng ứng dụng đã sẵn sàng trên màn hình chính thiết bị của bạn.</p>
+            </div>
+          </div>
+
+          <div class="app-instruction-box">
+            <h4>📱 Cách mở ứng dụng toàn màn hình:</h4>
+            <ol class="app-steps-list">
+              <li>Thoát ra <strong>Màn hình chính (Home Screen)</strong> của điện thoại.</li>
+              <li>Tìm và bấm vào biểu tượng ứng dụng <strong>VKU Field Survey</strong>.</li>
+              <li>Ứng dụng sẽ mở lên chạy <strong>toàn màn hình 100%</strong> (không có thanh địa chỉ trình duyệt, chụp ảnh lưu vào máy và lưu offline mượt mà).</li>
+            </ol>
+          </div>
+
+          <div class="app-action-buttons">
+            <a href="https://github.com/thuong614oh65/vku-field-survey-pwa/releases/download/v1.0.0/app-debug.apk" class="btn-app-action btn-apk-download" target="_blank">
+              🤖 Tải lại File APK mới nhất (Android)
+            </a>
+            <button type="button" class="btn-app-action btn-reset-install" onclick="resetAppInstallStatus()">
+              🔄 Tôi chưa cài đặt / Chuyển lại trạng thái "Tải về"
+            </button>
+          </div>
+        </div>
+
+        <!-- NỘI DUNG 2: NẾU CHƯA CÀI ĐẶT (TRẠNG THÁI "TẢI VỀ / CÀI ĐẶT") -->
+        <div id="app-view-not-installed" class="app-view-box">
+          <div class="app-tabs-header">
+            <button type="button" id="tab-btn-install-android" class="app-tab-btn active" onclick="switchInstallTab('android')">
+              🤖 Dành Cho Android
+            </button>
+            <button type="button" id="tab-btn-install-ios" class="app-tab-btn" onclick="switchInstallTab('ios')">
+              🍏 Dành Cho iPhone (iOS)
+            </button>
+          </div>
+
+          <!-- TAB ANDROID -->
+          <div id="install-tab-android" class="install-tab-content">
+            <div class="install-option-card highlight">
+              <div class="option-header">
+                <span class="option-badge">Khuyên dùng</span>
+                <h4>Cách 1: Tải File APK Gốc Về Cài Đặt</h4>
+              </div>
+              <p>Tải trực tiếp tệp tin cài đặt Native Android APK về máy điện thoại của bạn:</p>
+              <a href="https://github.com/thuong614oh65/vku-field-survey-pwa/releases/download/v1.0.0/app-debug.apk" class="btn-primary-action" onclick="markAppAsInstalled()">
+                ⬇️ Tải File app-debug.apk (~6.25 MB)
+              </a>
+            </div>
+
+            <div class="install-option-card">
+              <h4>Cách 2: Cài Đặt Trực Tiếp Qua Trình Duyệt Chrome</h4>
+              <p>Thêm ứng dụng vào màn hình chính thông qua công nghệ PWA Standalone:</p>
+              <button type="button" id="btn-trigger-pwa" class="btn-secondary-action" onclick="triggerPwaPrompt()">
+                📲 Bấm Vào Đây Để Cài Đặt Ngay
+              </button>
+            </div>
+          </div>
+
+          <!-- TAB IPHONE -->
+          <div id="install-tab-ios" class="install-tab-content hidden">
+            <div class="install-option-card highlight">
+              <h4>Cài Đặt Lên iPhone Miễn Phí 100% (3 Bước):</h4>
+              <ol class="app-steps-list">
+                <li>Mở liên kết này bằng trình duyệt <strong>Safari</strong> trên iPhone.</li>
+                <li>Bấm nút <strong>Chia sẻ (biểu tượng ô vuông có mũi tên trỏ lên ⬆️)</strong> ở thanh dưới cùng Safari.</li>
+                <li>Cuộn xuống chọn <strong>"Thêm vào MH chính" (Add to Home Screen)</strong> rồi bấm <strong>Thêm</strong>.</li>
+              </ol>
+              <button type="button" class="btn-primary-action" onclick="markAppAsInstalled()">
+                ✓ Tôi đã thêm vào MH chính xong!
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL THÔNG TIN HỆ THỐNG & CẤU HÌNH KỸ THUẬT (DÀNH CHO GIẢNG VIÊN / KIỂM THỬ) -->
   <div id="modal-sysinfo" class="modal-backdrop hidden" onclick="closeSystemInfoModal(event)">
     <div class="modal-card" onclick="event.stopPropagation()">

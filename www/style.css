@@ -103,6 +103,29 @@ body {
   transform: translateY(-1px);
 }
 
+.btn-install.installed {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4);
+  animation: pulsePurple 2.5s infinite;
+}
+
+.btn-install.installed:hover {
+  background: linear-gradient(135deg, #6d28d9, #5b21b6);
+  transform: translateY(-1px);
+}
+
+.btn-install.standalone {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);
+  cursor: default;
+}
+
+@keyframes pulsePurple {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.4); }
+  70% { transform: scale(1.04); box-shadow: 0 0 0 8px rgba(124, 58, 237, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(124, 58, 237, 0); }
+}
+
 .pulse-animation {
   animation: pulseBtn 2s infinite;
 }
@@ -1268,4 +1291,234 @@ textarea:focus {
   background: var(--surface-color);
   border-top: 1px solid var(--border-color);
   margin-top: auto;
+}
+
+/* APP MANAGER MODAL */
+.modal-app-card {
+  max-width: 520px;
+}
+
+.app-view-box {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.app-status-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.app-status-banner.success {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.app-status-banner .banner-icon {
+  font-size: 24px;
+}
+
+.app-status-banner strong {
+  display: block;
+  font-size: 14px;
+  color: #166534;
+  margin-bottom: 2px;
+}
+
+.app-status-banner p {
+  font-size: 12.5px;
+  color: #15803d;
+  margin: 0;
+}
+
+.app-instruction-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.app-instruction-box h4 {
+  font-size: 13.5px;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.app-steps-list {
+  padding-left: 20px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.app-action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-app-action {
+  width: 100%;
+  text-align: center;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btn-apk-download {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+}
+
+.btn-apk-download:hover {
+  background: linear-gradient(135deg, #0369a1, #075985);
+  transform: translateY(-1px);
+}
+
+.btn-reset-install {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+}
+
+.btn-reset-install:hover {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.app-tabs-header {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1.5px solid #e2e8f0;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.app-tab-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1.5px solid transparent;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.app-tab-btn.active {
+  background: #e0f2fe;
+  color: #0284c7;
+  border-color: #0284c7;
+}
+
+.install-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.install-option-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.install-option-card.highlight {
+  border: 1.5px solid #0284c7;
+  background: #f0f9ff;
+}
+
+.option-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.option-badge {
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.install-option-card h4 {
+  font-size: 14px;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.install-option-card p {
+  font-size: 12.5px;
+  color: #64748b;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.btn-primary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 14px;
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 8px;
+  border: none;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(2, 132, 199, 0.25);
+  transition: all 0.2s;
+}
+
+.btn-primary-action:hover {
+  background: #0369a1;
+  transform: translateY(-1px);
+}
+
+.btn-secondary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 9px 14px;
+  background: #f8fafc;
+  color: #0284c7;
+  border: 1.5px solid #0284c7;
+  font-size: 12.5px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary-action:hover {
+  background: #e0f2fe;
 }

@@ -990,42 +990,147 @@ window.closeSystemInfoModal = function () {
 };
 
 /* ==========================================================
- * 12. QUẢN LÝ CÀI ĐẶT PWA VỀ MÀN HÌNH CHÍNH (INSTALL APP)
+ * 12. QUẢN LÝ CÀI ĐẶT & CHUYỂN TRẠNG THÁI "VÀO APP"
  * ========================================================== */
 let deferredPrompt = null;
+
+function checkAppInstallationState() {
+  const btnInstall = document.getElementById('btn-install-app');
+  if (!btnInstall) return;
+
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const hasInstalled = localStorage.getItem('vku_app_installed') === 'true';
+
+  if (isStandalone) {
+    // Đang mở bên trong App độc lập
+    localStorage.setItem('vku_app_installed', 'true');
+    btnInstall.innerHTML = '🟢 Đang Trong App';
+    btnInstall.className = 'btn-install standalone';
+    btnInstall.title = 'Bạn đang sử dụng ứng dụng VKU Field Survey độc lập!';
+  } else if (hasInstalled) {
+    // Đã cài đặt trước đó, giờ vào lại web -> Đổi thành "Vào App"
+    btnInstall.innerHTML = '🚀 Vào App';
+    btnInstall.className = 'btn-install installed';
+    btnInstall.title = 'Mở ứng dụng đã cài đặt trên thiết bị của bạn';
+  } else {
+    // Chưa cài đặt
+    btnInstall.innerHTML = '📲 Cài Đặt App';
+    btnInstall.className = 'btn-install';
+    btnInstall.title = 'Cài đặt ứng dụng về màn hình chính điện thoại';
+  }
+}
+
+window.openAppManagerModal = function () {
+  const modal = document.getElementById('modal-app-manager');
+  const viewInstalled = document.getElementById('app-view-installed');
+  const viewNotInstalled = document.getElementById('app-view-not-installed');
+  const modalTitle = document.getElementById('app-modal-title');
+  const modalIcon = document.getElementById('app-modal-icon');
+
+  if (!modal) return;
+
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const hasInstalled = localStorage.getItem('vku_app_installed') === 'true';
+
+  if (isStandalone) {
+    if (modalTitle) modalTitle.textContent = 'Ứng Dụng Độc Lập';
+    if (modalIcon) modalIcon.textContent = '📱';
+    if (viewInstalled) viewInstalled.classList.remove('hidden');
+    if (viewNotInstalled) viewNotInstalled.classList.add('hidden');
+  } else if (hasInstalled) {
+    if (modalTitle) modalTitle.textContent = 'Vào Ứng Dụng Đã Cài Đặt';
+    if (modalIcon) modalIcon.textContent = '🚀';
+    if (viewInstalled) viewInstalled.classList.remove('hidden');
+    if (viewNotInstalled) viewNotInstalled.classList.add('hidden');
+  } else {
+    if (modalTitle) modalTitle.textContent = 'Cài Đặt & Tải Ứng Dụng';
+    if (modalIcon) modalIcon.textContent = '📲';
+    if (viewInstalled) viewInstalled.classList.add('hidden');
+    if (viewNotInstalled) viewNotInstalled.classList.remove('hidden');
+  }
+
+  modal.classList.remove('hidden');
+};
+
+window.closeAppManagerModal = function (e) {
+  if (e && e.target && e.target !== e.currentTarget) return;
+  const modal = document.getElementById('modal-app-manager');
+  if (modal) modal.classList.add('hidden');
+};
+
+window.markAppAsInstalled = function () {
+  localStorage.setItem('vku_app_installed', 'true');
+  checkAppInstallationState();
+  showToast('🎉 Đã xác nhận cài đặt: Nút đã chuyển thành "🚀 Vào App"');
+  window.closeAppManagerModal();
+};
+
+window.resetAppInstallStatus = function () {
+  localStorage.removeItem('vku_app_installed');
+  checkAppInstallationState();
+  showToast('🔄 Đã chuyển lại trạng thái Cài Đặt / Tải App');
+  window.closeAppManagerModal();
+};
+
+window.switchInstallTab = function (tab) {
+  const tabAndroid = document.getElementById('install-tab-android');
+  const tabIos = document.getElementById('install-tab-ios');
+  const btnAndroid = document.getElementById('tab-btn-install-android');
+  const btnIos = document.getElementById('tab-btn-install-ios');
+
+  if (tab === 'android') {
+    if (tabAndroid) tabAndroid.classList.remove('hidden');
+    if (tabIos) tabIos.classList.add('hidden');
+    if (btnAndroid) btnAndroid.classList.add('active');
+    if (btnIos) btnIos.classList.remove('active');
+  } else {
+    if (tabAndroid) tabAndroid.classList.add('hidden');
+    if (tabIos) tabIos.classList.remove('hidden');
+    if (btnAndroid) btnAndroid.classList.remove('active');
+    if (btnIos) btnIos.classList.add('active');
+  }
+};
+
+window.triggerPwaPrompt = async function () {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      localStorage.setItem('vku_app_installed', 'true');
+      checkAppInstallationState();
+      showToast('🎉 Đang cài đặt ứng dụng vào điện thoại...');
+    }
+    deferredPrompt = null;
+    window.closeAppManagerModal();
+  } else {
+    alert('📱 HƯỚNG DẪN CÀI ĐẶT TRÊN CHROME:\n\nNhấn vào biểu tượng 3 chấm ở góc trên bên phải trình duyệt -> Chọn "Cài đặt ứng dụng" (hoặc "Thêm vào màn hình chính").');
+    window.markAppAsInstalled();
+  }
+};
+
 function setupPwaInstallation() {
   const btnInstall = document.getElementById('btn-install-app');
   if (!btnInstall) return;
 
-  // Lắng nghe sự kiện trước khi cài đặt PWA
+  // Cập nhật trạng thái hiển thị của nút ngay khi trang nạp
+  checkAppInstallationState();
+
+  btnInstall.addEventListener('click', () => {
+    window.openAppManagerModal();
+  });
+
+  // Bắt sự kiện beforeinstallprompt
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    btnInstall.style.display = 'inline-flex';
-    btnInstall.classList.add('pulse-animation');
-    console.log('[PWA] Đã bắt sự kiện beforeinstallprompt, sẵn sàng cài đặt.');
+    console.log('[PWA] beforeinstallprompt event captured');
   });
 
-  btnInstall.addEventListener('click', async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log('[PWA] Kết quả cài đặt của người dùng:', outcome);
-      deferredPrompt = null;
-      btnInstall.style.display = 'none';
-    } else {
-      alert(
-        '📱 HƯỚNG DẪN CÀI ĐẶT ỨNG DỤNG VỀ ĐIỆN THOẠI:\n\n' +
-        '• Trên Android (Chrome): Nhấp vào biểu tượng 3 chấm góc trên bên phải -> Chọn "Cài đặt ứng dụng" (hoặc "Thêm vào màn hình chính").\n\n' +
-        '• Trên iPhone / iPad (Safari): Nhấp vào nút Chia sẻ (biểu tượng hình vuông có mũi tên lên) -> Chọn "Thêm vào MH chính" (Add to Home Screen).\n\n' +
-        'Sau khi cài đặt, ứng dụng sẽ có biểu tượng icon riêng trên màn hình, mở lên chạy toàn màn hình độc lập (Standalone) như ứng dụng Android gốc, không có thanh địa chỉ trình duyệt!'
-      );
-    }
-  });
-
+  // Khi cài đặt PWA hoàn tất
   window.addEventListener('appinstalled', () => {
-    showToast('🎉 Đã cài đặt VKU Field Survey về điện thoại thành công!');
-    btnInstall.style.display = 'none';
+    localStorage.setItem('vku_app_installed', 'true');
+    checkAppInstallationState();
+    showToast('🎉 Đã cài đặt VKU Field Survey về điện thoại thành công! Nút đã chuyển sang "🚀 Vào App"');
   });
 }
 
