@@ -313,9 +313,9 @@
           <div class="form-group">
             <label>Chụp ảnh hiện trường thiết bị / Điểm khảo sát:</label>
             <div class="camera-actions">
-              <label for="photo-file" class="btn-camera">
+              <button type="button" id="btn-camera" class="btn-camera">
                 📷 Mở Camera Chụp Ảnh Hiện Trường
-              </label>
+              </button>
               <input type="file" id="photo-file" accept="image/*" capture="environment" class="hidden-file-input" />
               <span id="photo-size-badge" class="photo-badge">Chưa có ảnh</span>
             </div>
@@ -333,12 +333,12 @@
               <img id="photo-img" src="" alt="Ảnh chụp hiện trường" />
               
               <div class="photo-save-hint">
-                <span>💡 <strong>Vị trí lưu:</strong> Ảnh được tải về thư mục <strong>Tải về (Downloads)</strong> hoặc ứng dụng <strong>Tệp (Files)</strong>. Bạn cũng có thể <strong>chạm giữ vào ảnh 1 giây</strong> rồi chọn <em>"Lưu vào Ảnh"</em> (trên iPhone) hoặc <em>"Tải ảnh xuống"</em> (trên Android) để lưu thẳng vào Album ảnh.</span>
+                <span>💡 <strong>Vị trí lưu:</strong> Khi dùng App cài đặt (APK), ảnh tự động lưu vào <strong>Thư viện ảnh</strong>. Trên trình duyệt web (Safari/Chrome), bạn chỉ cần <strong>chạm giữ vào ảnh 1 giây</strong> rồi chọn <em>"Lưu vào Ảnh"</em> (trên iPhone) hoặc bấm nút bên dưới để lưu thẳng vào Album ảnh.</span>
               </div>
 
               <div class="photo-btn-row">
-                <button type="button" id="btn-save-photo" class="btn-save-photo" title="Lưu/Tải ảnh vào bộ nhớ máy">
-                  📥 Tải Ảnh Vào Máy (.JPG)
+                <button type="button" id="btn-save-photo" class="btn-save-photo" title="Lưu/Tải ảnh vào Album ảnh máy">
+                  📲 Lưu Vào Album Ảnh / Bộ Sưu Tập
                 </button>
                 <button type="button" id="btn-view-photo-full" class="btn-view-full" title="Mở ảnh kích thước đầy đủ">
                   🔍 Xem Phóng To

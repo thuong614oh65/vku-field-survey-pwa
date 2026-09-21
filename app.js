@@ -560,6 +560,7 @@ window.downloadRecordPhoto = async function (recordId) {
 };
 
 function setupCamera() {
+  const btnCamera = document.getElementById('btn-camera');
   const photoFileInput = document.getElementById('photo-file');
   const photoSizeBadge = document.getElementById('photo-size-badge');
   const photoPreviewWrap = document.getElementById('photo-preview-wrap');
@@ -568,57 +569,95 @@ function setupCamera() {
   const btnSavePhoto = document.getElementById('btn-save-photo');
   const chkAutoSave = document.getElementById('chk-auto-save');
 
-  photoFileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
+  function processImageSource(dataUrl) {
     photoSizeBadge.textContent = 'Đang nén ảnh...';
+    const img = new Image();
+    img.onload = () => {
+      // Nén ảnh qua Canvas để giảm xuống ~100KB JPEG (chống tràn bộ nhớ IndexedDB)
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 900;
+      const MAX_HEIGHT = 900;
+      let w = img.width;
+      let h = img.height;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        // Nén ảnh qua Canvas để giảm xuống ~100KB JPEG (chống tràn bộ nhớ IndexedDB)
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 900;
-        const MAX_HEIGHT = 900;
-        let w = img.width;
-        let h = img.height;
-
-        if (w > h) {
-          if (w > MAX_WIDTH) {
-            h *= MAX_WIDTH / w;
-            w = MAX_WIDTH;
-          }
-        } else {
-          if (h > MAX_HEIGHT) {
-            w *= MAX_HEIGHT / h;
-            h = MAX_HEIGHT;
-          }
+      if (w > h) {
+        if (w > MAX_WIDTH) {
+          h *= MAX_WIDTH / w;
+          w = MAX_WIDTH;
         }
-
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
-
-        currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.72);
-        photoImg.src = currentPhotoBase64;
-        photoPreviewWrap.classList.remove('hidden');
-        photoSizeBadge.textContent = `✅ Đã nén (${Math.round(currentPhotoBase64.length / 1024)} KB)`;
-        showToast('📸 Đã chụp và tối ưu ảnh hiện trường!');
-
-        // Tự động lưu ảnh vào máy điện thoại nếu bật tuỳ chọn
-        if (chkAutoSave && chkAutoSave.checked) {
-          setTimeout(() => {
-            savePhotoToDevice(currentPhotoBase64);
-          }, 350);
+      } else {
+        if (h > MAX_HEIGHT) {
+          w *= MAX_HEIGHT / h;
+          h = MAX_HEIGHT;
         }
-      };
-      img.src = event.target.result;
+      }
+
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+
+      currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.72);
+      photoImg.src = currentPhotoBase64;
+      photoPreviewWrap.classList.remove('hidden');
+      photoSizeBadge.textContent = `✅ Đã nén (${Math.round(currentPhotoBase64.length / 1024)} KB)`;
+      showToast('📸 Đã chụp và tối ưu ảnh hiện trường!');
+
+      // Tự động lưu ảnh vào máy điện thoại nếu bật tuỳ chọn
+      if (chkAutoSave && chkAutoSave.checked) {
+        setTimeout(() => {
+          savePhotoToDevice(currentPhotoBase64);
+        }, 350);
+      }
     };
-    reader.readAsDataURL(file);
-  });
+    img.src = dataUrl;
+  }
+
+  // Nút mở Camera chính (Ưu tiên Native Camera nếu chạy trên App Android/iOS)
+  if (btnCamera) {
+    btnCamera.addEventListener('click', async (e) => {
+      e.preventDefault();
+
+      // 1. Nếu đang chạy trong App Thật Native (Capacitor Android APK / iOS)
+      if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() && window.Capacitor.Plugins && window.Capacitor.Plugins.Camera) {
+        try {
+          const photo = await window.Capacitor.Plugins.Camera.getPhoto({
+            quality: 85,
+            allowEditing: false,
+            resultType: 'dataUrl',
+            source: 'CAMERA',
+            saveToGallery: true // LƯU THẲNG VÀO BỘ SƯU TẬP / THƯ VIỆN ẢNH NHƯ FACEBOOK & ZALO!
+          });
+          if (photo && photo.dataUrl) {
+            processImageSource(photo.dataUrl);
+            showToast('✅ Đã lưu trực tiếp ảnh vào Thư viện ảnh (Bộ sưu tập)!');
+            return;
+          }
+        } catch (camErr) {
+          if (camErr.message && !camErr.message.includes('cancelled')) {
+            console.warn('Lỗi Native Camera:', camErr);
+          }
+          return;
+        }
+      }
+
+      // 2. Chạy trên trình duyệt Web (Safari/Chrome): mở input file camera
+      if (photoFileInput) photoFileInput.click();
+    });
+  }
+
+  // Xử lý khi người dùng chọn ảnh qua input file trên Web
+  if (photoFileInput) {
+    photoFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        processImageSource(event.target.result);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
 
   // Nút bấm thủ công lưu ảnh vào máy
   if (btnSavePhoto) {
