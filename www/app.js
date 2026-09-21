@@ -535,7 +535,7 @@ async function savePhotoToDevice(base64Data, customName) {
       URL.revokeObjectURL(url);
     }, 1200);
 
-    showToast(`📥 Đã tải và lưu ảnh vào máy: ${safeName}`);
+    showToast(`📥 Đã tải ảnh về máy: ${safeName} (Xem trong thư mục Tải về / Downloads hoặc ứng dụng Tệp)`, 6000);
     return true;
   } catch (err) {
     console.error('Lỗi khi lưu ảnh vào máy:', err);
@@ -628,6 +628,31 @@ function setupCamera() {
       } else {
         showToast('⚠️ Chưa có ảnh để lưu!');
       }
+    });
+  }
+
+  // Nút xem ảnh kích thước đầy đủ để dễ phóng to hoặc nhấn giữ lưu
+  const btnViewPhotoFull = document.getElementById('btn-view-photo-full');
+  if (btnViewPhotoFull) {
+    btnViewPhotoFull.addEventListener('click', () => {
+      if (currentPhotoBase64) {
+        const w = window.open('');
+        if (w) {
+          w.document.write(`<!DOCTYPE html><html><head><title>Ảnh Hiện Trường VKU</title><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body style="margin:0;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:16px;box-sizing:border-box;"><img src="${currentPhotoBase64}" style="max-width:100%;max-height:85vh;border-radius:8px;object-fit:contain;box-shadow:0 4px 20px rgba(0,0,0,0.5);"/><p style="color:#94a3b8;font-family:sans-serif;font-size:13px;margin-top:14px;text-align:center;">💡 Nhấn giữ vào ảnh trên để chọn "Lưu vào Ảnh" hoặc "Tải hình ảnh xuống"</p></body></html>`);
+        } else {
+          window.location.href = currentPhotoBase64;
+        }
+      } else {
+        showToast('⚠️ Chưa có ảnh để xem!');
+      }
+    });
+  }
+
+  if (photoImg) {
+    photoImg.style.cursor = 'pointer';
+    photoImg.title = 'Bấm để phóng to hoặc nhấn giữ để lưu vào máy';
+    photoImg.addEventListener('click', () => {
+      if (btnViewPhotoFull) btnViewPhotoFull.click();
     });
   }
 
