@@ -4,7 +4,7 @@
  * Hỗ trợ Background Sync API cho việc đồng bộ ngầm khi có mạng.
  */
 
-const CACHE_NAME = 'vku-survey-cache-v8';
+const CACHE_NAME = 'vku-survey-cache-v9';
 const APP_SHELL_ASSETS = [
   './',
   './index.html',

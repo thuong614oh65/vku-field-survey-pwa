@@ -19,6 +19,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     surveyTimeInput.value = localISO;
   }
 
+  // Khởi tạo tương tác Category Chips & Đánh giá Sao
+  setupCategoryChips();
+  setupStarRating();
+
   // 1. Phục hồi bản nháp từ IndexedDB nếu có (Real-time Draft Persistence)
   await restoreDraftForm();
 
@@ -132,6 +136,80 @@ window.switchTab = function (tabName) {
 };
 
 /* ==========================================================
+ * 0.1 GIAO DIỆN TƯƠNG TÁC HẠNG MỤC (CHIPS) & ĐÁNH GIÁ SAO (STARS)
+ * ========================================================== */
+const RATING_DESCRIPTIONS = {
+  1: '⭐ 1/5 • Kém / Hư hỏng nặng cần sửa gấp',
+  2: '⭐⭐ 2/5 • Dưới trung bình / Hoạt động chập chờn',
+  3: '⭐⭐⭐ 3/5 • Trung bình / Đạt yêu cầu cơ bản',
+  4: '⭐⭐⭐⭐ 4/5 • Tốt / Hoạt động ổn định',
+  5: '⭐⭐⭐⭐⭐ 5/5 • Rất tốt / Hoạt động hoàn hảo'
+};
+
+function setupCategoryChips() {
+  const chips = document.querySelectorAll('.category-chip');
+  const categorySelect = document.getElementById('category');
+  if (!chips.length || !categorySelect) return;
+
+  chips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      chips.forEach((c) => c.classList.remove('active'));
+      chip.classList.add('active');
+      const val = chip.getAttribute('data-value');
+      categorySelect.value = val;
+      categorySelect.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  });
+}
+
+function updateCategoryChipsUI(categoryValue) {
+  const chips = document.querySelectorAll('.category-chip');
+  chips.forEach((chip) => {
+    if (chip.getAttribute('data-value') === categoryValue) {
+      chip.classList.add('active');
+    } else {
+      chip.classList.remove('active');
+    }
+  });
+}
+
+function setupStarRating() {
+  const starBtns = document.querySelectorAll('.star-btn');
+  if (!starBtns.length) return;
+
+  starBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const rating = parseInt(btn.getAttribute('data-rating'), 10);
+      setStarRating(rating);
+    });
+  });
+}
+
+function setStarRating(rating) {
+  const starBtns = document.querySelectorAll('.star-btn');
+  const scorePill = document.getElementById('rating-score-pill');
+  const radio = document.querySelector(`input[name="condition_rating"][value="${rating}"]`);
+  if (radio) {
+    radio.checked = true;
+    radio.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  starBtns.forEach((btn) => {
+    const btnRating = parseInt(btn.getAttribute('data-rating'), 10);
+    if (btnRating <= rating) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  if (scorePill) {
+    scorePill.textContent = RATING_DESCRIPTIONS[rating] || `${rating}/5`;
+    scorePill.className = `rating-score-pill score-${rating}`;
+  }
+}
+
+/* ==========================================================
  * 1. REAL-TIME DRAFT PERSISTENCE (LƯU BẢN NHÁP VÀO INDEXEDDB)
  * ========================================================== */
 function setupDraftAutosave() {
@@ -176,11 +254,13 @@ async function restoreDraftForm() {
     if (draft.room) document.getElementById('room').value = draft.room;
     if (draft.targetPerson) document.getElementById('target-person').value = draft.targetPerson;
     if (draft.address) document.getElementById('address').value = draft.address;
-    if (draft.category) document.getElementById('category').value = draft.category;
+    if (draft.category) {
+      document.getElementById('category').value = draft.category;
+      updateCategoryChipsUI(draft.category);
+    }
 
     if (draft.rating) {
-      const radio = document.querySelector(`input[name="condition_rating"][value="${draft.rating}"]`);
-      if (radio) radio.checked = true;
+      setStarRating(parseInt(draft.rating, 10));
     }
     if (draft.defectNotes) document.getElementById('defect-notes').value = draft.defectNotes;
 
@@ -612,6 +692,8 @@ function setupFormSubmission() {
       document.getElementById('photo-preview-wrap').classList.add('hidden');
       document.getElementById('photo-size-badge').textContent = 'Chưa có ảnh';
       document.querySelector('input[name="condition_rating"][value="5"]').checked = true;
+      updateCategoryChipsUI('Hardware');
+      setStarRating(5);
 
       // Reset lại ngày giờ hiện tại
       const now = new Date();

@@ -118,16 +118,19 @@
 
         <!-- BƯỚC 1: THÔNG TIN NGƯỜI KHẢO SÁT & THỜI GIAN -->
         <div class="form-step-box">
-          <h3 class="step-title">👤 Bước 1: Thông Tin Người Khảo Sát & Thời Gian</h3>
+          <h3 class="step-title">
+            <span class="step-num-badge">1</span>
+            <span>Thông Tin Người Khảo Sát & Thời Gian</span>
+          </h3>
           
           <div class="form-row">
             <div class="form-group">
               <label for="inspector">Họ & Tên Người khảo sát / Kiểm tra *</label>
-              <input type="text" id="inspector" placeholder="Ví dụ: Nguyễn Văn Nam" required />
+              <input type="text" id="inspector" placeholder="Ví dụ: Nguyễn Thị Thương" required />
             </div>
             <div class="form-group">
               <label for="inspector-code">Mã Điều tra viên / Mã SV *</label>
-              <input type="text" id="inspector-code" placeholder="Ví dụ: DTV-092 / 21IT001" required />
+              <input type="text" id="inspector-code" placeholder="Ví dụ: 23IT.B219" required />
             </div>
           </div>
 
@@ -139,7 +142,10 @@
 
         <!-- BƯỚC 2: ĐỊA ĐIỂM & ĐỊNH VỊ VỆ TINH GPS -->
         <div class="form-step-box">
-          <h3 class="step-title">📍 Bước 2: Địa Điểm & Tọa Độ Vệ Tinh (GPS)</h3>
+          <h3 class="step-title">
+            <span class="step-num-badge">2</span>
+            <span>Địa Điểm & Tọa Độ Vệ Tinh (GPS)</span>
+          </h3>
 
           <div class="form-row">
             <div class="form-group">
@@ -201,12 +207,62 @@
 
         <!-- BƯỚC 3: HẠNG MỤC & ĐÁNH GIÁ 1-5 SAO -->
         <div class="form-step-box">
-          <h3 class="step-title">⚙️ Bước 3: Hạng Mục Khảo Sát & Đánh Giá Tình Trạng</h3>
+          <h3 class="step-title">
+            <span class="step-num-badge">3</span>
+            <span>Hạng Mục Khảo Sát & Đánh Giá Tình Trạng</span>
+          </h3>
 
           <div class="form-group">
-            <label for="category">Hạng mục khảo sát (Category) *</label>
-            <select id="category" required>
-              <option value="Hardware">Hardware (Máy tính, Phần cứng CNTT phòng Lab)</option>
+            <label>Hạng mục khảo sát (Category) *</label>
+            <!-- Visual Modern Category Grid -->
+            <div class="category-chips-grid" id="category-chips-wrap">
+              <button type="button" class="category-chip active" data-value="Hardware">
+                <span class="chip-icon">💻</span>
+                <div class="chip-text">
+                  <strong>Hardware</strong>
+                  <small>Máy tính & Lab</small>
+                </div>
+              </button>
+              <button type="button" class="category-chip" data-value="Projector">
+                <span class="chip-icon">📽️</span>
+                <div class="chip-text">
+                  <strong>Projector</strong>
+                  <small>Máy chiếu, Âm thanh</small>
+                </div>
+              </button>
+              <button type="button" class="category-chip" data-value="AC">
+                <span class="chip-icon">❄️</span>
+                <div class="chip-text">
+                  <strong>AC</strong>
+                  <small>Điều hòa & Quạt</small>
+                </div>
+              </button>
+              <button type="button" class="category-chip" data-value="Electrical">
+                <span class="chip-icon">⚡</span>
+                <div class="chip-text">
+                  <strong>Electrical</strong>
+                  <small>Hệ thống điện & Đèn</small>
+                </div>
+              </button>
+              <button type="button" class="category-chip" data-value="Furniture">
+                <span class="chip-icon">🪑</span>
+                <div class="chip-text">
+                  <strong>Furniture</strong>
+                  <small>Bàn ghế & Bục giảng</small>
+                </div>
+              </button>
+              <button type="button" class="category-chip" data-value="Market/Service">
+                <span class="chip-icon">🛍️</span>
+                <div class="chip-text">
+                  <strong>Market / Service</strong>
+                  <small>Hàng hóa & Căng-tin</small>
+                </div>
+              </button>
+            </div>
+
+            <!-- Select ẩn đồng bộ với form data -->
+            <select id="category" class="hidden-select" required>
+              <option value="Hardware" selected>Hardware (Máy tính, Phần cứng CNTT phòng Lab)</option>
               <option value="Projector">Projector (Máy chiếu, Màn chiếu, Thiết bị Âm thanh)</option>
               <option value="AC">AC (Máy điều hòa nhiệt độ, Hệ thống thông gió)</option>
               <option value="Electrical">Electrical (Hệ thống điện, Đèn chiếu sáng, Ổ cắm)</option>
@@ -217,28 +273,37 @@
 
           <div class="form-group">
             <label>Đánh giá chất lượng hiện trạng (1–5 Star Rating) *</label>
-            <div class="star-rating-group">
+            <!-- Interactive Modern Star Bar -->
+            <div class="interactive-star-container">
+              <div class="stars-flex-row" id="stars-row">
+                <button type="button" class="star-btn active" data-rating="1" title="1 Sao">★</button>
+                <button type="button" class="star-btn active" data-rating="2" title="2 Sao">★</button>
+                <button type="button" class="star-btn active" data-rating="3" title="3 Sao">★</button>
+                <button type="button" class="star-btn active" data-rating="4" title="4 Sao">★</button>
+                <button type="button" class="star-btn active" data-rating="5" title="5 Sao">★</button>
+              </div>
+              <div class="rating-badge-preview" id="rating-badge-preview">
+                <span class="rating-score-pill score-5" id="rating-score-pill">⭐⭐⭐⭐⭐ 5/5 • Rất tốt / Hoạt động hoàn hảo</span>
+              </div>
+            </div>
+
+            <!-- Radio inputs đồng bộ ngầm cho Form Submit & Draft -->
+            <div class="star-rating-group hidden">
               <input type="radio" id="star5" name="condition_rating" value="5" checked />
-              <label for="star5" title="5 sao">⭐⭐⭐⭐⭐ (5 Sao - Rất tốt / Hoạt động hoàn hảo)</label>
-
               <input type="radio" id="star4" name="condition_rating" value="4" />
-              <label for="star4" title="4 sao">⭐⭐⭐⭐ (4 Sao - Tốt / Đáp ứng tốt yêu cầu)</label>
-
               <input type="radio" id="star3" name="condition_rating" value="3" />
-              <label for="star3" title="3 sao">⭐⭐⭐ (3 Sao - Trung bình / Cần bảo dưỡng)</label>
-
               <input type="radio" id="star2" name="condition_rating" value="2" />
-              <label for="star2" title="2 sao">⭐⭐ (2 Sao - Kém / Hỏng một phần chức năng)</label>
-
               <input type="radio" id="star1" name="condition_rating" value="1" />
-              <label for="star1" title="1 sao">⭐ (1 Sao - Rất xấu / Hư hỏng nghiêm trọng)</label>
             </div>
           </div>
         </div>
 
         <!-- BƯỚC 4: GHI CHÚ SỰ CỐ & CHỤP ẢNH HIỆN TRƯỜNG -->
         <div class="form-step-box">
-          <h3 class="step-title">📸 Bước 4: Minh Chứng Hình Ảnh & Ghi Chú Hiện Trường</h3>
+          <h3 class="step-title">
+            <span class="step-num-badge">4</span>
+            <span>Minh Chứng Hình Ảnh & Ghi Chú Hiện Trường</span>
+          </h3>
 
           <div class="form-group">
             <label for="defect-notes">Ghi chú sự cố / Ý kiến khảo sát:</label>
@@ -279,7 +344,7 @@
         </div>
 
         <button type="submit" id="btn-submit" class="btn-primary">
-          💾 Gửi Phiếu Khảo Sát (Lưu Offline-First)
+          <span>💾 Gửi Phiếu Khảo Sát (Lưu Offline-First)</span>
         </button>
       </form>
     </section>
