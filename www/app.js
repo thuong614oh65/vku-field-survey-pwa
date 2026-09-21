@@ -670,17 +670,12 @@ function setupCamera() {
     });
   }
 
-  // Nút xem ảnh kích thước đầy đủ để dễ phóng to hoặc nhấn giữ lưu
+  // Nút xem ảnh phóng to mở Lightbox Modal có nút Đóng / Thoát rõ ràng
   const btnViewPhotoFull = document.getElementById('btn-view-photo-full');
   if (btnViewPhotoFull) {
     btnViewPhotoFull.addEventListener('click', () => {
       if (currentPhotoBase64) {
-        const w = window.open('');
-        if (w) {
-          w.document.write(`<!DOCTYPE html><html><head><title>Ảnh Hiện Trường VKU</title><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body style="margin:0;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:16px;box-sizing:border-box;"><img src="${currentPhotoBase64}" style="max-width:100%;max-height:85vh;border-radius:8px;object-fit:contain;box-shadow:0 4px 20px rgba(0,0,0,0.5);"/><p style="color:#94a3b8;font-family:sans-serif;font-size:13px;margin-top:14px;text-align:center;">💡 Nhấn giữ vào ảnh trên để chọn "Lưu vào Ảnh" hoặc "Tải hình ảnh xuống"</p></body></html>`);
-        } else {
-          window.location.href = currentPhotoBase64;
-        }
+        window.openPhotoViewer(currentPhotoBase64);
       } else {
         showToast('⚠️ Chưa có ảnh để xem!');
       }
@@ -691,7 +686,9 @@ function setupCamera() {
     photoImg.style.cursor = 'pointer';
     photoImg.title = 'Bấm để phóng to hoặc nhấn giữ để lưu vào máy';
     photoImg.addEventListener('click', () => {
-      if (btnViewPhotoFull) btnViewPhotoFull.click();
+      if (currentPhotoBase64) {
+        window.openPhotoViewer(currentPhotoBase64);
+      }
     });
   }
 
@@ -703,6 +700,41 @@ function setupCamera() {
     showToast('Đã xóa ảnh hiện tại.');
   });
 }
+
+// Controller quản lý Modal Xem Ảnh Phóng To (Có nút Đóng / Thoát rõ ràng)
+window.openPhotoViewer = function (imgSrc) {
+  const modal = document.getElementById('modal-photo-viewer');
+  const img = document.getElementById('modal-viewer-img');
+  if (!modal || !img) return;
+  img.src = imgSrc || currentPhotoBase64;
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+};
+
+window.closePhotoViewerModal = function (e) {
+  if (e && e.target && e.target !== e.currentTarget && !e.target.classList.contains('photo-viewer-close') && !e.target.classList.contains('btn-secondary-action')) {
+    return;
+  }
+  const modal = document.getElementById('modal-photo-viewer');
+  if (modal) {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+};
+
+window.handleSaveFromViewer = async function () {
+  const img = document.getElementById('modal-viewer-img');
+  if (img && img.src) {
+    await savePhotoToDevice(img.src);
+  }
+};
+
+// Đóng modal ảnh khi bấm phím Escape trên bàn phím
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    window.closePhotoViewerModal();
+  }
+});
 
 /* ==========================================================
  * 5. GỬI FORM VÀ LƯU HÀNG ĐỢI OFFLINE (PENDING_SYNC)
@@ -810,10 +842,13 @@ async function refreshQueueUI() {
 
       const photoHtml = item.photo
         ? `<div style="margin-top:6px;">
-             <img src="${item.photo}" class="queue-photo-thumb" alt="Ảnh hiện trường" />
-             <div>
+             <img src="${item.photo}" class="queue-photo-thumb" alt="Ảnh hiện trường" style="cursor:pointer;" title="Bấm để xem ảnh phóng to" onclick="window.openPhotoViewer('${item.photo}')" />
+             <div style="display:flex; gap:8px; align-items:center; margin-top:4px; flex-wrap:wrap;">
                <button type="button" class="btn-download-record-photo" onclick="window.downloadRecordPhoto('${item.id}')">
                  📥 Tải ảnh về máy
+               </button>
+               <button type="button" class="btn-download-record-photo" style="background:#f1f5f9; color:#334155; border-color:#cbd5e1;" onclick="window.openPhotoViewer('${item.photo}')">
+                 🔍 Xem lớn
                </button>
              </div>
            </div>`

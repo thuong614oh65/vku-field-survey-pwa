@@ -551,6 +551,30 @@
     </div>
   </div>
 
+  <!-- MODAL XEM ẢNH PHÓNG TO & NÚT THOÁT / LƯU (IN-APP PHOTO LIGHTBOX) -->
+  <div id="modal-photo-viewer" class="modal-backdrop hidden" onclick="closePhotoViewerModal(event)">
+    <div class="photo-viewer-card" onclick="event.stopPropagation()">
+      <div class="photo-viewer-header">
+        <span class="photo-viewer-title">📸 Ảnh Minh Chứng Hiện Trường</span>
+        <button type="button" class="photo-viewer-close" onclick="closePhotoViewerModal(event)" title="Đóng cửa sổ ảnh">&times; Đóng</button>
+      </div>
+
+      <div class="photo-viewer-body">
+        <img id="modal-viewer-img" src="" alt="Ảnh khảo sát hiện trường" />
+        <p class="photo-viewer-hint">💡 <strong>Mẹo iPhone:</strong> Bạn có thể chạm giữ vào ảnh trên 1 giây để chọn <em>"Lưu vào Ảnh"</em></p>
+      </div>
+
+      <div class="photo-viewer-footer">
+        <button type="button" class="btn-primary-action" onclick="handleSaveFromViewer()">
+          📲 Lưu Vào Album Ảnh / Bộ Sưu Tập
+        </button>
+        <button type="button" class="btn-secondary-action" onclick="closePhotoViewerModal(event)">
+          ❌ Đóng Lại
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL THÔNG TIN HỆ THỐNG & CẤU HÌNH KỸ THUẬT (DÀNH CHO GIẢNG VIÊN / KIỂM THỬ) -->
   <div id="modal-sysinfo" class="modal-backdrop hidden" onclick="closeSystemInfoModal(event)">
     <div class="modal-card" onclick="event.stopPropagation()">
