@@ -9,14 +9,75 @@
 let currentGpsCoords = null;
 let currentPhotoBase64 = null;
 let draftDebounceTimer = null;
+let userManuallyEditedTime = false;
+let serverTimeOffsetMs = 0;
+
+function getTrueCurrentDate() {
+  return new Date(Date.now() + serverTimeOffsetMs);
+}
+
+async function calibrateRealServerTime() {
+  try {
+    const res = await fetch('./manifest.json?_rt=' + Date.now(), {
+      method: 'HEAD',
+      cache: 'no-store',
+    });
+    const dateHeader = res.headers.get('date');
+    if (dateHeader) {
+      const serverMs = new Date(dateHeader).getTime();
+      if (!isNaN(serverMs)) {
+        serverTimeOffsetMs = serverMs - Date.now();
+        syncSurveyTimeToRealTime(true);
+      }
+    }
+  } catch (_) {}
+}
+
+function syncSurveyTimeToRealTime(force = false) {
+  const surveyTimeInput = document.getElementById('survey-time');
+  const liveBadge = document.getElementById('live-clock-badge');
+  const now = getTrueCurrentDate();
+
+  if (liveBadge) {
+    const vnTimeStr = now.toLocaleString('vi-VN', {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+    liveBadge.textContent = userManuallyEditedTime
+      ? `🔄 Nhấn để lấy giờ thực (${vnTimeStr})`
+      : `🟢 Giờ thực: ${vnTimeStr}`;
+  }
+
+  if (!surveyTimeInput) return;
+  if (!force && userManuallyEditedTime) return;
+
+  const localISO = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 16);
+  if (surveyTimeInput.value !== localISO) {
+    surveyTimeInput.value = localISO;
+  }
+}
+
+window.resetToLiveRealTime = function () {
+  userManuallyEditedTime = false;
+  syncSurveyTimeToRealTime(true);
+  if (typeof showToast === 'function') {
+    showToast('⏱️ Đã đồng bộ lại theo thời gian thực hiện tại!');
+  }
+};
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Gán thời gian hiện tại cho ô input datetime-local
   const surveyTimeInput = document.getElementById('survey-time');
   if (surveyTimeInput) {
-    const now = new Date();
-    const localISO = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-    surveyTimeInput.value = localISO;
+    surveyTimeInput.addEventListener('change', () => {
+      userManuallyEditedTime = true;
+    });
   }
 
   // Khởi tạo tương tác Category Chips & Đánh giá Sao
@@ -25,6 +86,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 1. Phục hồi bản nháp từ IndexedDB nếu có (Real-time Draft Persistence)
   await restoreDraftForm();
+
+  // 1.1 Tự động điền thông tin phòng học & sinh viên nếu chuyển sang từ ứng dụng VKU Room Booking
+  prefillFromRoomBookingParams();
+
+  // 1.2 Luôn cập nhật Thời gian khảo sát theo THỜI GIAN THỰC hiện tại (không bị kẹt giờ cũ trong bản nháp)
+  syncSurveyTimeToRealTime(true);
+  calibrateRealServerTime();
+  setInterval(() => syncSurveyTimeToRealTime(false), 1000);
 
   // 2. Theo dõi trạng thái Mạng (Web API & Capacitor Network fallback)
   setupNetworkMonitoring();
@@ -55,6 +124,67 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 10. Thiết lập cài đặt PWA về màn hình chính điện thoại
   setupPwaInstallation();
 });
+
+function prefillFromRoomBookingParams() {
+  if (typeof window === 'undefined' || !window.location.search) return;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const room = params.get('room');
+    const rname = params.get('rname');
+    const building = params.get('building');
+    const floor = params.get('floor');
+    const student = params.get('student');
+    const mssv = params.get('mssv');
+
+    if (!room && !student && !mssv) return;
+
+    const inspectorInput = document.getElementById('inspector');
+    const codeInput = document.getElementById('inspector-code');
+    const buildingSelect = document.getElementById('building');
+    const floorSelect = document.getElementById('floor');
+    const roomInput = document.getElementById('room');
+    const addressInput = document.getElementById('address');
+
+    if (student && inspectorInput) inspectorInput.value = student;
+    if (mssv && codeInput) codeInput.value = mssv;
+
+    if (room && roomInput) {
+      roomInput.value = rname ? `Phòng ${room} - ${rname}` : `Phòng ${room}`;
+    }
+
+    if (buildingSelect && (building || room)) {
+      const hint = `${building || ''} ${room || ''}`.toUpperCase();
+      if (hint.includes('KHU V') || hint.startsWith('V.')) {
+        buildingSelect.value = 'Khu V (Nhà đa năng & Thể thao)';
+      } else if (hint.includes('KHU B') || hint.startsWith('B.')) {
+        buildingSelect.value = 'Khu B (Khu thực hành & Lab)';
+      } else if (hint.includes('KHU C') || hint.startsWith('C.')) {
+        buildingSelect.value = 'Khu C (Hành chính & Khảo thí)';
+      } else if (hint.includes('KHU A') || hint.startsWith('A.')) {
+        buildingSelect.value = 'Khu A (Giảng đường chính)';
+      }
+    }
+
+    if (floorSelect && (floor || room)) {
+      const floorStr = String(floor || '');
+      const floorMatch = floorStr.match(/[1-5]/) || (room ? room.match(/[A-Z](\d)\d\d/i) : null);
+      const floorNum = floorMatch ? (floorMatch[1] || floorMatch[0]) : null;
+      if (floorNum) {
+        floorSelect.value = `Tầng ${floorNum}`;
+      }
+    }
+
+    if (addressInput && !addressInput.value) {
+      addressInput.value = 'Khuôn viên Trường ĐH CNTT & TT Việt - Hàn (VKU), Ngũ Hành Sơn, Đà Nẵng';
+    }
+
+    if (typeof showToast === 'function' && room) {
+      setTimeout(() => {
+        showToast(`🔗 Đã liên kết thông tin Phòng ${room} từ VKU Room Booking!`, 'success');
+      }, 300);
+    }
+  } catch (e) {}
+}
 
 /* ==========================================================
  * 0. ĐIỀU HƯỚNG GIAO DIỆN & MENU 3 CHẤM (MORE OPTIONS)
@@ -248,7 +378,7 @@ async function restoreDraftForm() {
 
     if (draft.inspector) document.getElementById('inspector').value = draft.inspector;
     if (draft.inspectorCode) document.getElementById('inspector-code').value = draft.inspectorCode;
-    if (draft.surveyTime) document.getElementById('survey-time').value = draft.surveyTime;
+    // Tuyệt đối không ghi đè survey-time bằng giờ cũ trong bản nháp (luôn dùng thời gian thực hiện tại)
     if (draft.building) document.getElementById('building').value = draft.building;
     if (draft.floor) document.getElementById('floor').value = draft.floor;
     if (draft.room) document.getElementById('room').value = draft.room;

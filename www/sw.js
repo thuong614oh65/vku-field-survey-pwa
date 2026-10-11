@@ -1,10 +1,9 @@
 /**
  * Service Worker: VKU Field Survey PWA
- * Caching Strategy: Cache-First for App Shell (HTML, CSS, JS, Manifest)
- * Hỗ trợ Background Sync API cho việc đồng bộ ngầm khi có mạng.
+ * Caching Strategy: Network-First with Offline Cache Fallback (đảm bảo luôn cập nhật bản mới nhất khi Online và chạy 100% Offline khi mất mạng)
  */
 
-const CACHE_NAME = 'vku-survey-cache-v12';
+const CACHE_NAME = 'vku-survey-cache-v15';
 const APP_SHELL_ASSETS = [
   './',
   './index.html',
@@ -19,7 +18,6 @@ const APP_SHELL_ASSETS = [
 
 // 1. Giai đoạn INSTALL: Pre-cache App Shell
 self.addEventListener('install', (event) => {
-  console.log('[Service Worker] Đang tải trước App Shell vào Cache Storage...');
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(APP_SHELL_ASSETS);
@@ -35,7 +33,6 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
-            console.log('[Service Worker] Đang dọn dẹp cache cũ:', cache);
             return caches.delete(cache);
           }
         })
@@ -45,45 +42,44 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// 3. Giai đoạn FETCH: Cache-First Strategy cho sub-second boot
+// 3. Giai đoạn FETCH: Network-First với Offline Cache Fallback
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-  // Bỏ qua cache đối với request API đám mây và kiểm tra kết nối mạng (healthcheck)
-  if (event.request.url.includes('/api/') || event.request.url.includes('__healthcheck')) return;
+  if (
+    event.request.url.includes('/api/') ||
+    event.request.url.includes('__healthcheck') ||
+    event.request.url.includes('_rt=')
+  ) {
+    return;
+  }
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Tìm thấy trong bộ nhớ đệm Cache Storage -> Trả về ngay lập tức
-        return cachedResponse;
-      }
-
-      // Chưa có trong cache -> Thực hiện tải qua mạng và nạp thêm vào cache
-      return fetch(event.request)
-        .then((networkResponse) => {
-          if (
-            networkResponse &&
-            networkResponse.status === 200 &&
-            event.request.url.startsWith(self.location.origin)
-          ) {
-            const clone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return networkResponse;
-        })
-        .catch(() => {
-          // Khi hoàn toàn offline và người dùng tải lại trang HTML
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (
+          networkResponse &&
+          networkResponse.status === 200 &&
+          event.request.url.startsWith(self.location.origin)
+        ) {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(event.request, { ignoreSearch: true }).then((cached) => {
+          if (cached) return cached;
           if (event.request.headers.get('accept')?.includes('text/html')) {
             return caches.match('./index.html');
           }
         });
-    })
+      })
   );
 });
 
-// 4. Background Sync API: Tự động kích hoạt khi có kết nối mạng ngầm
+// 4. Background Sync API
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-vku-surveys') {
-    console.log('[Service Worker Background Sync] Bắt được sự kiện mạng, kích hoạt đồng bộ ngầm');
+    console.log('[Service Worker Background Sync] Kích hoạt đồng bộ ngầm');
   }
 });

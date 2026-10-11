@@ -24,6 +24,9 @@
         </div>
       </div>
       <div class="status-bar">
+        <a href="https://vku-room-booking-17t.pages.dev/" class="btn-install" style="text-decoration:none;background:linear-gradient(135deg,#0284c7,#1d4ed8);color:#fff;" title="Quay về Hệ thống Đặt Phòng Học Thông Minh VKU">
+          🏫 Đặt Phòng VKU
+        </a>
         <button id="btn-install-app" class="btn-install" title="Cài đặt ứng dụng về màn hình chính điện thoại">
           📲 Cài Đặt App
         </button>
@@ -138,7 +141,12 @@
           </div>
 
           <div class="form-group">
-            <label for="survey-time">Thời gian khảo sát *</label>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:6px;">
+              <label for="survey-time" style="margin-bottom:0;">Thời gian khảo sát (Thời gian thực) *</label>
+              <span id="live-clock-badge" style="font-size:12px;font-weight:700;color:#15803d;background:#dcfce7;padding:3px 10px;border-radius:999px;cursor:pointer;" onclick="window.resetToLiveRealTime && window.resetToLiveRealTime()" title="Nhấn để đồng bộ lại thời gian thực">
+                🟢 Đồng bộ thời gian thực...
+              </span>
+            </div>
             <input type="datetime-local" id="survey-time" required />
           </div>
         </div>
@@ -626,7 +634,18 @@
   </footer>
 
   <!-- MODULE SCRIPTS -->
-  <script src="./db.js"></script>
-  <script src="./app.js"></script>
+  <script src="./db.js?v=15"></script>
+  <script src="./app.js?v=15"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      var __reloadingSw = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function() {
+        if (!__reloadingSw) {
+          __reloadingSw = true;
+          window.location.reload();
+        }
+      });
+    }
+  </script>
 </body>
 </html>
